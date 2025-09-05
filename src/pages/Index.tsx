@@ -218,21 +218,12 @@ const Index = () => {
           )}
           
           <div className="text-center mt-8">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/produtos">
-                <Button variant="outline" size="lg" className="gap-2 w-full sm:w-auto">
-                  Ver Todos os Produtos
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              
-              <Link to="/admin/login">
-                <Button variant="outline" size="lg" className="gap-2 w-full sm:w-auto">
-                  <User className="w-4 h-4" />
-                  Painel Admin
-                </Button>
-              </Link>
-            </div>
+            <Link to="/produtos">
+              <Button variant="outline" size="lg" className="gap-2">
+                Ver Todos os Produtos
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
