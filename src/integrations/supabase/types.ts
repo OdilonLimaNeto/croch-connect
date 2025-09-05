@@ -14,7 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      materials: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          images: string[] | null
+          is_active: boolean
+          materials: string[] | null
+          price: number
+          promotional_price: number | null
+          stock_quantity: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          materials?: string[] | null
+          price: number
+          promotional_price?: number | null
+          stock_quantity?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          materials?: string[] | null
+          price?: number
+          promotional_price?: number | null
+          stock_quantity?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      promotions: {
+        Row: {
+          created_at: string
+          discount_percentage: number
+          end_date: string
+          id: string
+          is_active: boolean
+          product_id: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percentage: number
+          end_date: string
+          id?: string
+          is_active?: boolean
+          product_id: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_percentage?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          product_id?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
