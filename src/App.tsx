@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import AdminLogin from "./pages/admin/Login";
+import Dashboard from "./pages/admin/Dashboard";
+import AdminProducts from "./pages/admin/Products";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +27,16 @@ const App = () => (
             <Route path="/produtos" element={<Products />} />
             <Route path="/produto/:id" element={<ProductDetail />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            {/* Protected admin routes will be added next */}
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute requireAdmin>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/produtos" element={
+              <ProtectedRoute requireAdmin>
+                <AdminProducts />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
