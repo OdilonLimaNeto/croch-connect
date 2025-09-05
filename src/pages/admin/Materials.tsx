@@ -42,13 +42,16 @@ const AdminMaterials = () => {
 
   const loadMaterials = async () => {
     try {
+      console.log('Materials: Starting to load materials...');
       setLoading(true);
       const data = await MaterialService.getMaterials();
+      console.log('Materials: Loaded materials:', data);
       setMaterials(data);
     } catch (error) {
       console.error('Error loading materials:', error);
       toast.error('Erro ao carregar materiais');
     } finally {
+      console.log('Materials: Finished loading, setting loading to false');
       setLoading(false);
     }
   };

@@ -179,11 +179,13 @@ export class PromotionService {
 export class MaterialService {
   static async getMaterials(): Promise<Material[]> {
     try {
+      console.log('MaterialService: Starting materials query...');
       const { data, error } = await supabase
         .from('materials')
         .select('*')
         .order('name');
 
+      console.log('MaterialService: Query result:', { data, error });
       if (error) throw error;
       return data || [];
     } catch (error) {

@@ -49,8 +49,10 @@ export const useAuthState = () => {
   };
 
   const updateUserState = async (session: Session | null) => {
+    console.log('Auth: Updating user state with session:', !!session?.user);
     if (session?.user) {
       const profile = await fetchUserProfile(session.user.id);
+      console.log('Auth: Fetched profile:', profile);
       const authUser: AuthUser = {
         id: session.user.id,
         email: session.user.email!,
@@ -58,12 +60,15 @@ export const useAuthState = () => {
       };
       setUser(authUser);
       setIsAdmin(profile?.role === 'admin');
+      console.log('Auth: Set isAdmin:', profile?.role === 'admin');
     } else {
       setUser(null);
       setIsAdmin(false);
+      console.log('Auth: No session, cleared user state');
     }
     setSession(session);
     setLoading(false);
+    console.log('Auth: Auth loading set to false');
   };
 
   const refreshUser = async () => {
@@ -80,13 +85,18 @@ export const useAuthState = () => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        await updateUserState(session);
+      (event, session) => {
+        console.log('Auth: onAuthStateChange event:', event, !!session?.user);
+        // Use setTimeout to prevent potential deadlock with Supabase
+        setTimeout(() => {
+          updateUserState(session);
+        }, 0);
       }
     );
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Auth: Initial session:', !!session?.user);
       updateUserState(session);
     });
 
