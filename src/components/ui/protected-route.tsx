@@ -25,7 +25,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requireAdmin && !isAdmin) {
-    // User is authenticated but not admin
+    // User is authenticated but not admin - redirect to home
     return <Navigate to="/" replace />;
   }
 

@@ -56,10 +56,10 @@ const AdminLogin = () => {
   });
 
   useEffect(() => {
-    if (!authLoading && user) {
-      navigate(from, { replace: true });
+    if (!authLoading && user?.profile?.role === 'admin') {
+      navigate('/admin/dashboard', { replace: true });
     }
-  }, [user, authLoading, navigate, from]);
+  }, [user, authLoading, navigate]);
 
   const onLogin = async (data: LoginFormData) => {
     setLoading(true);
@@ -76,9 +76,11 @@ const AdminLogin = () => {
         return;
       }
 
-      if (loggedUser) {
+      if (loggedUser?.profile?.role === 'admin') {
         toast.success('Login realizado com sucesso!');
-        navigate(from, { replace: true });
+        navigate('/admin/dashboard', { replace: true });
+      } else if (loggedUser) {
+        toast.error('Acesso negado. Apenas administradores podem acessar este painel.');
       }
     } catch (error) {
       setError('Erro inesperado. Tente novamente.');
