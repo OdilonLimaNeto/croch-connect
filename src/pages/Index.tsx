@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, MessageCircle, Star, Heart, Award } from 'lucide-react';
+import { ArrowRight, MessageCircle, Star, Heart, Award, User } from 'lucide-react';
 import { Product } from '@/types';
 import { ProductService, WhatsAppService } from '@/services/api';
 import Header from '@/components/layout/header';
@@ -217,11 +217,18 @@ const Index = () => {
             </div>
           )}
           
-          <div className="text-center mt-8">
+          <div className="flex gap-4 justify-center">
             <Link to="/produtos">
               <Button variant="outline" size="lg" className="gap-2">
                 Ver Todos os Produtos
                 <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
+            
+            <Link to="/admin/login">
+              <Button variant="outline" size="lg" className="gap-2">
+                <User className="w-4 h-4" />
+                Painel Admin
               </Button>
             </Link>
           </div>

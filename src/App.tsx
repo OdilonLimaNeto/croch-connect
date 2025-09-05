@@ -11,6 +11,8 @@ import ProductDetail from "./pages/ProductDetail";
 import AdminLogin from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
+import AdminPromotions from "./pages/admin/Promotions";
+import AdminMaterials from "./pages/admin/Materials";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,16 @@ const App = () => (
             <Route path="/admin/produtos" element={
               <ProtectedRoute requireAdmin>
                 <AdminProducts />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/promocoes" element={
+              <ProtectedRoute requireAdmin>
+                <AdminPromotions />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/materiais" element={
+              <ProtectedRoute requireAdmin>
+                <AdminMaterials />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
