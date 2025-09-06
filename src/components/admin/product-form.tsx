@@ -144,10 +144,46 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     try {
       setLoading(true);
       
-      // TODO: Implement product creation/update with images
-      toast.info(`${isEdit ? 'Edição' : 'Criação'} de produto ainda não implementada`);
-      
+      // Prepare the product data
+      const productData = {
+        title: data.title,
+        description: data.description || null,
+        price: data.price,
+        promotional_price: data.promotional_price || null,
+        stock_quantity: data.stock_quantity,
+        materials: data.materials || [],
+        is_active: data.is_active,
+        images: [] as string[] // For now, we'll store empty array for images
+      };
+
+      if (isEdit && product) {
+        // Update existing product
+        const result = await ProductService.updateProduct(product.id, productData);
+        
+        if (result.success) {
+          toast.success('Produto atualizado com sucesso!');
+          onSuccess?.();
+          handleClose();
+        } else {
+          toast.error(result.error || 'Erro ao atualizar produto');
+        }
+      } else {
+        // Create new product
+        const result = await ProductService.createProduct({
+          ...productData,
+          images: [] // Images will be handled separately in future
+        } as any);
+        
+        if (result.success) {
+          toast.success('Produto criado com sucesso!');
+          onSuccess?.();
+          handleClose();
+        } else {
+          toast.error(result.error || 'Erro ao criar produto');
+        }
+      }
     } catch (error) {
+      console.error('Error submitting form:', error);
       toast.error(`Erro ao ${isEdit ? 'editar' : 'criar'} produto`);
     } finally {
       setLoading(false);
