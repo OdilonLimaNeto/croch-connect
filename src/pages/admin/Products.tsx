@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { DataTable } from '@/components/ui/data-table';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ProductForm } from '@/components/admin/product-form';
 import { 
   Plus, 
   Package, 
@@ -25,6 +26,12 @@ import { ptBR } from 'date-fns/locale';
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    products: Product[];
+  }>({ open: false, products: [] });
 
   useEffect(() => {
     loadProducts();
@@ -44,43 +51,52 @@ const AdminProducts = () => {
   };
 
   const handleEdit = (product: Product) => {
-    // TODO: Navigate to edit form
-    toast.info(`Editar produto: ${product.title}`);
+    setEditingProduct(product);
+    setShowForm(true);
   };
 
-  const handleDelete = async (product: Product) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${product.title}"?`)) {
-      try {
-        const result = await ProductService.deleteProducts([product.id]);
-        if (result.success) {
-          toast.success('Produto excluído com sucesso');
-          loadProducts();
-        } else {
-          toast.error(result.error || 'Erro ao excluir produto');
-        }
-      } catch (error) {
-        toast.error('Erro ao excluir produto');
-      }
-    }
+  const handleDelete = (product: Product) => {
+    setDeleteDialog({
+      open: true,
+      products: [product],
+    });
   };
 
-  const handleBulkDelete = async (products: Product[]) => {
+  const handleBulkDelete = (products: Product[]) => {
+    setDeleteDialog({
+      open: true,
+      products,
+    });
+  };
+
+  const confirmDelete = async () => {
+    const { products } = deleteDialog;
     const productIds = products.map(p => p.id);
-    const productTitles = products.map(p => p.title).join(', ');
     
-    if (window.confirm(`Tem certeza que deseja excluir ${products.length} produto(s)?\n\n${productTitles}`)) {
-      try {
-        const result = await ProductService.deleteProducts(productIds);
-        if (result.success) {
-          toast.success(`${products.length} produto(s) excluído(s) com sucesso`);
-          loadProducts();
-        } else {
-          toast.error(result.error || 'Erro ao excluir produtos');
-        }
-      } catch (error) {
-        toast.error('Erro ao excluir produtos');
+    try {
+      const result = await ProductService.deleteProducts(productIds);
+      if (result.success) {
+        toast.success(`${products.length} produto(s) excluído(s) com sucesso`);
+        loadProducts();
+      } else {
+        toast.error(result.error || 'Erro ao excluir produtos');
       }
+    } catch (error) {
+      toast.error('Erro ao excluir produtos');
+    } finally {
+      setDeleteDialog({ open: false, products: [] });
     }
+  };
+
+  const handleNewProduct = () => {
+    setEditingProduct(null);
+    setShowForm(true);
+  };
+
+  const handleFormSuccess = () => {
+    loadProducts();
+    setShowForm(false);
+    setEditingProduct(null);
   };
 
   const handleToggleStatus = async (product: Product) => {
@@ -202,7 +218,7 @@ const AdminProducts = () => {
               Gerencie seu catálogo de produtos
             </p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={handleNewProduct}>
             <Plus className="w-4 h-4" />
             Novo Produto
           </Button>
@@ -281,6 +297,30 @@ const AdminProducts = () => {
             />
           </CardContent>
         </Card>
+
+        {/* Product Form Dialog */}
+        <ProductForm
+          open={showForm}
+          onOpenChange={setShowForm}
+          product={editingProduct || undefined}
+          onSuccess={handleFormSuccess}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+          title="Excluir Produto(s)"
+          description={
+            deleteDialog.products.length === 1
+              ? `Tem certeza que deseja excluir o produto "${deleteDialog.products[0]?.title}"? Esta ação não pode ser desfeita.`
+              : `Tem certeza que deseja excluir ${deleteDialog.products.length} produtos? Esta ação não pode ser desfeita.`
+          }
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          variant="destructive"
+          onConfirm={confirmDelete}
+        />
       </div>
     </AdminLayout>
   );

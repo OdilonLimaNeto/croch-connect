@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { DataTable } from '@/components/ui/data-table';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { PromotionForm } from '@/components/admin/promotion-form';
 import { 
   Plus, 
   Tag, 
@@ -23,6 +25,12 @@ import { ptBR } from 'date-fns/locale';
 const AdminPromotions = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    promotions: Promotion[];
+  }>({ open: false, promotions: [] });
 
   useEffect(() => {
     loadPromotions();
@@ -42,41 +50,52 @@ const AdminPromotions = () => {
   };
 
   const handleEdit = (promotion: Promotion) => {
-    toast.info(`Editar promoção: ${promotion.discount_percentage}% OFF`);
+    setEditingPromotion(promotion);
+    setShowForm(true);
   };
 
-  const handleDelete = async (promotion: Promotion) => {
-    if (window.confirm(`Tem certeza que deseja excluir a promoção de ${promotion.discount_percentage}%?`)) {
-      try {
-        const result = await PromotionService.deletePromotions([promotion.id]);
-        if (result.success) {
-          toast.success('Promoção excluída com sucesso');
-          loadPromotions();
-        } else {
-          toast.error(result.error || 'Erro ao excluir promoção');
-        }
-      } catch (error) {
-        toast.error('Erro ao excluir promoção');
-      }
-    }
+  const handleDelete = (promotion: Promotion) => {
+    setDeleteDialog({
+      open: true,
+      promotions: [promotion],
+    });
   };
 
-  const handleBulkDelete = async (promotions: Promotion[]) => {
+  const handleBulkDelete = (promotions: Promotion[]) => {
+    setDeleteDialog({
+      open: true,
+      promotions,
+    });
+  };
+
+  const confirmDelete = async () => {
+    const { promotions } = deleteDialog;
     const promotionIds = promotions.map(p => p.id);
     
-    if (window.confirm(`Tem certeza que deseja excluir ${promotions.length} promoção(ões)?`)) {
-      try {
-        const result = await PromotionService.deletePromotions(promotionIds);
-        if (result.success) {
-          toast.success(`${promotions.length} promoção(ões) excluída(s) com sucesso`);
-          loadPromotions();
-        } else {
-          toast.error(result.error || 'Erro ao excluir promoções');
-        }
-      } catch (error) {
-        toast.error('Erro ao excluir promoções');
+    try {
+      const result = await PromotionService.deletePromotions(promotionIds);
+      if (result.success) {
+        toast.success(`${promotions.length} promoção(ões) excluída(s) com sucesso`);
+        loadPromotions();
+      } else {
+        toast.error(result.error || 'Erro ao excluir promoções');
       }
+    } catch (error) {
+      toast.error('Erro ao excluir promoções');
+    } finally {
+      setDeleteDialog({ open: false, promotions: [] });
     }
+  };
+
+  const handleNewPromotion = () => {
+    setEditingPromotion(null);
+    setShowForm(true);
+  };
+
+  const handleFormSuccess = () => {
+    loadPromotions();
+    setShowForm(false);
+    setEditingPromotion(null);
   };
 
   const getPromotionStatus = (promotion: Promotion) => {
@@ -203,7 +222,7 @@ const AdminPromotions = () => {
               Gerencie ofertas especiais e descontos
             </p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={handleNewPromotion}>
             <Plus className="w-4 h-4" />
             Nova Promoção
           </Button>
@@ -282,6 +301,30 @@ const AdminPromotions = () => {
             />
           </CardContent>
         </Card>
+
+        {/* Promotion Form Dialog */}
+        <PromotionForm
+          open={showForm}
+          onOpenChange={setShowForm}
+          promotion={editingPromotion || undefined}
+          onSuccess={handleFormSuccess}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+          title="Excluir Promoção(ões)"
+          description={
+            deleteDialog.promotions.length === 1
+              ? `Tem certeza que deseja excluir a promoção de ${deleteDialog.promotions[0]?.discount_percentage}%? Esta ação não pode ser desfeita.`
+              : `Tem certeza que deseja excluir ${deleteDialog.promotions.length} promoções? Esta ação não pode ser desfeita.`
+          }
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          variant="destructive"
+          onConfirm={confirmDelete}
+        />
       </div>
     </AdminLayout>
   );

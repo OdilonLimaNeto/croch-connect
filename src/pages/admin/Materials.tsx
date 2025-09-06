@@ -2,39 +2,34 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { DataTable } from '@/components/ui/data-table';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { MaterialForm } from '@/components/admin/material-form';
 import { 
   Plus, 
+  Package, 
   Palette, 
-  Circle,
-  Edit,
-  Trash2
+  List,
+  Layers,
+  Circle
 } from 'lucide-react';
 import { Material, TableColumn } from '@/types';
 import { MaterialService } from '@/services/api';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const AdminMaterials = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    color: ''
-  });
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    materials: Material[];
+  }>({ open: false, materials: [] });
 
   useEffect(() => {
     loadMaterials();
@@ -56,87 +51,53 @@ const AdminMaterials = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      toast.error('Nome do material é obrigatório');
-      return;
-    }
-
-    try {
-      const result = await MaterialService.createMaterial(
-        formData.name,
-        formData.description || undefined,
-        formData.color || undefined
-      );
-
-      if (result.success) {
-        toast.success('Material criado com sucesso');
-        setDialogOpen(false);
-        resetForm();
-        loadMaterials();
-      } else {
-        toast.error(result.error || 'Erro ao criar material');
-      }
-    } catch (error) {
-      toast.error('Erro ao criar material');
-    }
-  };
-
   const handleEdit = (material: Material) => {
     setEditingMaterial(material);
-    setFormData({
-      name: material.name,
-      description: material.description || '',
-      color: material.color || ''
+    setShowForm(true);
+  };
+
+  const handleDelete = (material: Material) => {
+    setDeleteDialog({
+      open: true,
+      materials: [material],
     });
-    setDialogOpen(true);
   };
 
-  const handleDelete = async (material: Material) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${material.name}"?`)) {
-      try {
-        const result = await MaterialService.deleteMaterials([material.id]);
-        if (result.success) {
-          toast.success('Material excluído com sucesso');
-          loadMaterials();
-        } else {
-          toast.error(result.error || 'Erro ao excluir material');
-        }
-      } catch (error) {
-        toast.error('Erro ao excluir material');
-      }
-    }
+  const handleBulkDelete = (materials: Material[]) => {
+    setDeleteDialog({
+      open: true,
+      materials,
+    });
   };
 
-  const handleBulkDelete = async (materials: Material[]) => {
+  const confirmDelete = async () => {
+    const { materials } = deleteDialog;
     const materialIds = materials.map(m => m.id);
-    const materialNames = materials.map(m => m.name).join(', ');
     
-    if (window.confirm(`Tem certeza que deseja excluir ${materials.length} material(is)?\n\n${materialNames}`)) {
-      try {
-        const result = await MaterialService.deleteMaterials(materialIds);
-        if (result.success) {
-          toast.success(`${materials.length} material(is) excluído(s) com sucesso`);
-          loadMaterials();
-        } else {
-          toast.error(result.error || 'Erro ao excluir materiais');
-        }
-      } catch (error) {
-        toast.error('Erro ao excluir materiais');
+    try {
+      const result = await MaterialService.deleteMaterials(materialIds);
+      if (result.success) {
+        toast.success(`${materials.length} material(ais) excluído(s) com sucesso`);
+        loadMaterials();
+      } else {
+        toast.error(result.error || 'Erro ao excluir materiais');
       }
+    } catch (error) {
+      toast.error('Erro ao excluir materiais');
+    } finally {
+      setDeleteDialog({ open: false, materials: [] });
     }
   };
 
-  const resetForm = () => {
-    setFormData({ name: '', description: '', color: '' });
+  const handleNewMaterial = () => {
     setEditingMaterial(null);
+    setShowForm(true);
   };
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-    resetForm();
+  const handleFormSuccess = () => {
+    loadMaterials();
+    setShowForm(false);
+    setEditingMaterial(null);
   };
 
   const getColorBadge = (color: string | null) => {
@@ -170,8 +131,8 @@ const AdminMaterials = () => {
       label: 'Material',
       render: (value, item) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-            <Palette className="w-5 h-5 text-primary-foreground" />
+          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+            <Palette className="w-5 h-5 text-primary" />
           </div>
           <div>
             <p className="font-medium text-foreground">{value}</p>
@@ -192,9 +153,15 @@ const AdminMaterials = () => {
     {
       key: 'created_at',
       label: 'Criado em',
-      render: (value) => new Date(value).toLocaleDateString('pt-BR')
+      render: (value) => format(new Date(value), 'dd/MM/yy', { locale: ptBR })
     }
   ];
+
+  const stats = {
+    total: materials.length,
+    withColor: materials.filter(m => m.color).length,
+    withDescription: materials.filter(m => m.description).length
+  };
 
   return (
     <AdminLayout>
@@ -207,85 +174,44 @@ const AdminMaterials = () => {
               Gerencie os materiais utilizados nos produtos
             </p>
           </div>
-          
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                Novo Material
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingMaterial ? 'Editar Material' : 'Novo Material'}
-                </DialogTitle>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Nome do Material *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ex: Algodão, Lã, Barbante..."
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="description">Descrição</Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Descrição opcional do material"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="color">Cor Principal</Label>
-                  <Input
-                    id="color"
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    placeholder="Ex: Branco, Cru, Rosa..."
-                  />
-                </div>
-                
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1">
-                    {editingMaterial ? 'Salvar Alterações' : 'Criar Material'}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleDialogClose}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button className="gap-2" onClick={handleNewMaterial}>
+            <Plus className="w-4 h-4" />
+            Novo Material
+          </Button>
         </div>
 
-        {/* Stats Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-medium">
-              Total de Materiais Cadastrados
-            </CardTitle>
-            <Palette className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{materials.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Materiais disponíveis para usar nos produtos
-            </p>
-          </CardContent>
-        </Card>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Com Cor</CardTitle>
+              <Palette className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{stats.withColor}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Com Descrição</CardTitle>
+              <List className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-success">{stats.withDescription}</div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Materials Table */}
         <Card>
@@ -305,6 +231,30 @@ const AdminMaterials = () => {
             />
           </CardContent>
         </Card>
+
+        {/* Material Form Dialog */}
+        <MaterialForm
+          open={showForm}
+          onOpenChange={setShowForm}
+          material={editingMaterial || undefined}
+          onSuccess={handleFormSuccess}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+          title="Excluir Material(ais)"
+          description={
+            deleteDialog.materials.length === 1
+              ? `Tem certeza que deseja excluir o material "${deleteDialog.materials[0]?.name}"? Esta ação não pode ser desfeita.`
+              : `Tem certeza que deseja excluir ${deleteDialog.materials.length} materiais? Esta ação não pode ser desfeita.`
+          }
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          variant="destructive"
+          onConfirm={confirmDelete}
+        />
       </div>
     </AdminLayout>
   );
