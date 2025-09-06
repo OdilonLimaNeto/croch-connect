@@ -8,13 +8,15 @@ const AboutFounders = () => {
     role: "Fundadora & Artesã",
     description: "Especialista em técnicas tradicionais e inovadoras.",
     expertise: ["Crochê Tradicional", "Peças Infantis"],
-    icon: <Heart className="w-6 h-6" />
+    icon: <Heart className="w-6 h-6" />,
+    image: "/founder-ana.jpg"
   }, {
     name: "Thayná Feitosa",
     role: "Co-Fundadora & Artesã",
     description: "Sua paixão por detalhes garante que cada produto seja perfeito.",
     expertise: ["Controle de Qualidade", "Seleção de Materiais", "Acabamentos"],
-    icon: <Award className="w-6 h-6" />
+    icon: <Award className="w-6 h-6" />,
+    image: "/founder-thayna.jpg"
   }];
   return <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
@@ -37,8 +39,22 @@ const AboutFounders = () => {
               <CardContent className="p-8">
                 <div className="flex items-start gap-6">
                   <div className="flex-shrink-0">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      {founder.icon}
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-primary/10 border-2 border-primary/20 group-hover:border-primary/30 transition-all duration-300">
+                      <img 
+                        src={founder.image} 
+                        alt={`${founder.name} - ${founder.role}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to icon if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                      <div className="w-full h-full bg-primary/10 flex items-center justify-center" style={{ display: 'none' }}>
+                        {founder.icon}
+                      </div>
                     </div>
                   </div>
                   
