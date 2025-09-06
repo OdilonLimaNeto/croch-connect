@@ -75,8 +75,15 @@ const HeroCarousel = () => {
           </p>
         </div>
 
-        <Carousel className="max-w-5xl mx-auto">
-          <CarouselContent>
+        {/* Estratégia de centralização baseada na quantidade de promoções */}
+        <Carousel className={`mx-auto ${
+          promotions.length === 1 ? 'max-w-md' : 
+          promotions.length === 2 ? 'max-w-3xl' : 
+          'max-w-5xl'
+        }`}>
+          <CarouselContent className={
+            promotions.length === 1 ? "flex justify-center" : ""
+          }>
             {promotions.map((promotion) => {
               const product = promotion.product;
               if (!product) return null;
@@ -84,8 +91,15 @@ const HeroCarousel = () => {
               const originalPrice = product.price;
               const discountedPrice = originalPrice * (1 - promotion.discount_percentage / 100);
 
+              // Estratégia de basis baseada na quantidade de promoções
+              const getBasisClass = () => {
+                if (promotions.length === 1) return "basis-full max-w-sm mx-auto";
+                if (promotions.length === 2) return "md:basis-1/2";
+                return "md:basis-1/2 lg:basis-1/3";
+              };
+
               return (
-                <CarouselItem key={promotion.id} className="md:basis-1/2 lg:basis-1/3">
+                <CarouselItem key={promotion.id} className={getBasisClass()}>
                   <Card className="group hover:shadow-elegant transition-all duration-300 h-full">
                     <div className="relative">
                       <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
@@ -156,8 +170,13 @@ const HeroCarousel = () => {
             })}
           </CarouselContent>
           
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
+          {/* Mostrar controles apenas quando necessário */}
+          {promotions.length > 1 && (
+            <>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </>
+          )}
         </Carousel>
       </div>
     </section>
