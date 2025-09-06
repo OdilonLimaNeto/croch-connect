@@ -6,13 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
   Plus, 
   Edit, 
   Trash2, 
   Eye, 
   EyeOff,
-  User
+  User,
+  MoreHorizontal
 } from 'lucide-react';
 import { FounderService } from '@/services/founderService';
 import { Founder, FounderFormData } from '@/types';
@@ -279,37 +286,37 @@ export default function Founders() {
                           </div>
                         </div>
                         
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => startEdit(founder)}
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </Button>
-                          
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleToggleStatus(founder.id, founder.is_active)}
-                          >
-                            {founder.is_active ? (
-                              <EyeOff className="w-4 h-4 mr-2" />
-                            ) : (
-                              <Eye className="w-4 h-4 mr-2" />
-                            )}
-                            {founder.is_active ? 'Desativar' : 'Ativar'}
-                          </Button>
-                          
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteFounder(founder.id)}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Excluir
-                          </Button>
+                        <div className="flex justify-end mt-4">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => startEdit(founder)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              
+                              <DropdownMenuItem onClick={() => handleToggleStatus(founder.id, founder.is_active)}>
+                                {founder.is_active ? (
+                                  <EyeOff className="w-4 h-4 mr-2" />
+                                ) : (
+                                  <Eye className="w-4 h-4 mr-2" />
+                                )}
+                                {founder.is_active ? 'Desativar' : 'Ativar'}
+                              </DropdownMenuItem>
+                              
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteFounder(founder.id)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </div>
