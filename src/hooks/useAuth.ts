@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthUser, Profile } from '@/types';
@@ -28,36 +28,66 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Cache para evitar múltiplas consultas simultâneas
+  const profileCacheRef = useRef<{ [userId: string]: Profile | null }>({});
+  const fetchingProfileRef = useRef<{ [userId: string]: Promise<Profile | null> }>({});
+
   const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      return null;
+    // Verifica se já tem no cache
+    if (profileCacheRef.current[userId] !== undefined) {
+      return profileCacheRef.current[userId];
     }
+
+    // Verifica se já está buscando
+    if (fetchingProfileRef.current[userId]) {
+      return fetchingProfileRef.current[userId];
+    }
+
+    // Inicia a busca
+    const fetchPromise = (async () => {
+      try {
+        console.log('Auth: Fetching profile for user:', userId);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle(); // Use maybeSingle() em vez de single() para evitar erro quando não encontrar
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          profileCacheRef.current[userId] = null;
+          return null;
+        }
+
+        profileCacheRef.current[userId] = data;
+        return data;
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        profileCacheRef.current[userId] = null;
+        return null;
+      } finally {
+        // Remove da lista de "fetching"
+        delete fetchingProfileRef.current[userId];
+      }
+    })();
+
+    fetchingProfileRef.current[userId] = fetchPromise;
+    return fetchPromise;
   };
 
   const updateUserState = async (session: Session | null) => {
     console.log('Auth: Updating user state with session:', !!session?.user);
+    
     if (session?.user) {
       const profile = await fetchUserProfile(session.user.id);
       console.log('Auth: Fetched profile:', profile);
+      
       const authUser: AuthUser = {
         id: session.user.id,
         email: session.user.email!,
         profile: profile || undefined,
       };
+      
       setUser(authUser);
       setIsAdmin(profile?.role === 'admin');
       console.log('Auth: Set isAdmin:', profile?.role === 'admin');
@@ -65,7 +95,10 @@ export const useAuthState = () => {
       setUser(null);
       setIsAdmin(false);
       console.log('Auth: No session, cleared user state');
+      // Limpa o cache quando não há sessão
+      profileCacheRef.current = {};
     }
+    
     setSession(session);
     setLoading(false);
     console.log('Auth: Auth loading set to false');
@@ -73,6 +106,8 @@ export const useAuthState = () => {
 
   const refreshUser = async () => {
     if (session?.user) {
+      // Limpa o cache para forçar uma nova busca
+      delete profileCacheRef.current[session.user.id];
       await updateUserState(session);
     }
   };
