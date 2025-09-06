@@ -19,6 +19,7 @@ interface ImageUploadProps {
   maxSize?: number; // in MB
   className?: string;
   disabled?: boolean;
+  existingImagesCount?: number; // Count of existing images (not new uploads)
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -27,7 +28,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   maxImages = 5,
   maxSize = 5,
   className,
-  disabled = false
+  disabled = false,
+  existingImagesCount = 0
 }) => {
   const [previews, setPreviews] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +44,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
 
-    // Validate total count
-    const totalFiles = images.length + acceptedFiles.length;
+    // Validate total count (including existing images)
+    const totalFiles = existingImagesCount + images.length + acceptedFiles.length;
     if (totalFiles > maxImages) {
-      setError(`Máximo de ${maxImages} imagens permitidas`);
+      setError(`Máximo de ${maxImages} imagens permitidas (${existingImagesCount} existente(s) + ${images.length + acceptedFiles.length} nova(s))`);
       return;
     }
 
@@ -80,7 +82,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       'image/*': ['.jpeg', '.jpg', '.png', '.webp']
     },
     multiple: true,
-    disabled: disabled || images.length >= maxImages
+    disabled: disabled || (existingImagesCount + images.length) >= maxImages
   });
 
   const removeImage = (index: number) => {
@@ -91,7 +93,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setError(null);
   };
 
-  const canAddMore = images.length < maxImages && !disabled;
+  const canAddMore = (existingImagesCount + images.length) < maxImages && !disabled;
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -121,6 +123,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               </p>
               <div className="flex justify-center gap-4 mt-2 text-xs text-muted-foreground">
                 <span>Máximo: {maxImages} imagens</span>
+                <span>Restante: {maxImages - existingImagesCount - images.length}</span>
                 <span>Tamanho: até {maxSize}MB cada</span>
               </div>
             </div>
@@ -141,7 +144,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-medium text-foreground">
-              Imagens Selecionadas ({images.length}/{maxImages})
+              Novas Imagens ({images.length}/{maxImages - existingImagesCount})
             </h4>
             {images.length > 0 && (
               <Badge variant="secondary" className="text-xs">

@@ -669,7 +669,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               {imageItems.length < MAX_IMAGES && (
                 <div className="space-y-2">
                   <div className="text-sm font-medium">
-                    Adicionar novas imagens ({MAX_IMAGES - imageItems.length} disponível(is)):
+                    Adicionar novas imagens ({images.length}/{MAX_IMAGES - imageItems.length} disponível(is)):
                   </div>
                   <ImageUpload
                     images={images}
@@ -677,6 +677,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     maxImages={MAX_IMAGES - imageItems.length}
                     maxSize={5}
                     disabled={loading}
+                    existingImagesCount={imageItems.length}
                   />
                 </div>
               )}
