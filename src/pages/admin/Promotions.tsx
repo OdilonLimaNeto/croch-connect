@@ -161,11 +161,11 @@ const AdminPromotions = () => {
                 
                 return (
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground line-through">
-                      R$ {item.product.price.toFixed(2)}
-                    </span>
-                    <span className="text-success font-semibold" data-discounted-value={finalDiscountedValue}>
+                    <span className="text-lg font-bold text-primary">
                       R$ {finalDiscountedValue.toFixed(2)}
+                    </span>
+                    <span className="text-sm text-muted-foreground line-through">
+                      R$ {item.product.price.toFixed(2)}
                     </span>
                   </div>
                 );
