@@ -22,7 +22,8 @@ import {
   ShoppingBag,
   LogOut,
   User,
-  Home
+  Home,
+  Users
 } from 'lucide-react';
 
 const menuItems = [
@@ -45,6 +46,11 @@ const menuItems = [
     title: 'Materiais',
     url: '/admin/materiais',
     icon: Palette,
+  },
+  {
+    title: 'Usuários',
+    url: '/admin/usuarios',
+    icon: Users,
   },
 ];
 

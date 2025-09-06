@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { AuthService } from '@/lib/auth';
@@ -19,14 +19,7 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
 });
 
-const signUpSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
-  full_name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-});
-
 type LoginFormData = z.infer<typeof loginSchema>;
-type SignUpFormData = z.infer<typeof signUpSchema>;
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -34,7 +27,7 @@ const AdminLogin = () => {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('login');
+  
 
   const from = location.state?.from?.pathname || '/admin/dashboard';
 
@@ -46,14 +39,6 @@ const AdminLogin = () => {
     },
   });
 
-  const signUpForm = useForm<SignUpFormData>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      full_name: '',
-    },
-  });
 
   useEffect(() => {
     if (!authLoading && user?.profile?.role === 'admin') {
@@ -90,34 +75,6 @@ const AdminLogin = () => {
     }
   };
 
-  const onSignUp = async (data: SignUpFormData) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { user: newUser, error } = await AuthService.signUp({
-        email: data.email,
-        password: data.password,
-        full_name: data.full_name,
-        role: 'admin' // Novos usuários no painel admin são sempre admins
-      });
-      
-      if (error) {
-        setError(error);
-        return;
-      }
-
-      if (newUser) {
-        toast.success('Conta criada com sucesso! Verifique seu email para confirmar.');
-        setActiveTab('login');
-        loginForm.setValue('email', data.email);
-      }
-    } catch (error) {
-      setError('Erro inesperado. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (authLoading) {
     return (
@@ -156,136 +113,60 @@ const AdminLogin = () => {
           </Alert>
         )}
 
-        {/* Auth Forms */}
+        {/* Auth Form */}
         <Card className="shadow-elegant">
           <CardHeader>
             <CardTitle className="text-center">
-              {activeTab === 'login' ? 'Fazer Login' : 'Criar Conta'}
+              Fazer Login
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-              </TabsList>
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="seu@email.com"
+                          {...field}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <TabsContent value="login" className="space-y-4 mt-6">
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="seu@email.com"
-                              {...field}
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                          disabled={loading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Senha</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              {...field}
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Entrar
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
-
-              <TabsContent value="signup" className="space-y-4 mt-6">
-                <Form {...signUpForm}>
-                  <form onSubmit={signUpForm.handleSubmit(onSignUp)} className="space-y-4">
-                    <FormField
-                      control={signUpForm.control}
-                      name="full_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome Completo</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Seu nome completo"
-                              {...field}
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={signUpForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="seu@email.com"
-                              {...field}
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={signUpForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Senha</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              {...field}
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Criar Conta
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
-            </Tabs>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Entrar
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
 
