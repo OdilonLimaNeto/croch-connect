@@ -111,4 +111,52 @@ export class AuthService {
       return false;
     }
   }
+
+  static async updateUser(userId: string, updates: { full_name?: string; email?: string; role?: 'admin' | 'user' }): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Update profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: updates.full_name,
+          role: updates.role,
+          email: updates.email,
+        })
+        .eq('user_id', userId);
+
+      if (profileError) {
+        return { success: false, error: profileError.message };
+      }
+
+      // If email is being updated, update auth.users as well
+      if (updates.email) {
+        const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
+          email: updates.email,
+        });
+
+        if (authError) {
+          return { success: false, error: authError.message };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "Erro inesperado ao atualizar usuário" };
+    }
+  }
+
+  static async deleteUser(userId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Delete from auth.users (this will cascade to profiles due to foreign key)
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "Erro inesperado ao excluir usuário" };
+    }
+  }
 }
