@@ -98,7 +98,8 @@ const AdminLogin = () => {
       const { user: newUser, error } = await AuthService.signUp({
         email: data.email,
         password: data.password,
-        full_name: data.full_name
+        full_name: data.full_name,
+        role: 'admin' // Novos usuários no painel admin são sempre admins
       });
       
       if (error) {

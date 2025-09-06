@@ -36,7 +36,7 @@ export class AuthService {
     }
   }
 
-  static async signUp(data: SignUpFormData): Promise<{ user: AuthUser | null; error: string | null }> {
+  static async signUp(data: SignUpFormData & { role?: 'admin' | 'user' }): Promise<{ user: AuthUser | null; error: string | null }> {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
@@ -47,6 +47,7 @@ export class AuthService {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: data.full_name,
+            role: data.role || 'user',
           }
         }
       });
