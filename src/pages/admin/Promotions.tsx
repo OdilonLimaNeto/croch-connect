@@ -156,7 +156,7 @@ const AdminPromotions = () => {
             <div>
               <p className="font-medium text-foreground">{item.product.title}</p>
               {(() => {
-                const discountedPrice = Number(item.product.price) * (1 - Number(value) / 100);
+                const discountedPrice = Number(item.product.price) * (1 - Number(item.discount_percentage) / 100);
                 const finalDiscountedValue = isNaN(discountedPrice) ? 0 : discountedPrice;
                 
                 return (
