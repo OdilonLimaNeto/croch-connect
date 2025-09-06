@@ -350,7 +350,7 @@ export class WhatsAppService {
     window.open(whatsappUrl, '_blank');
   }
 
-  static contactProduct(product: Product, phoneNumber: string = '5511999999999'): void {
+  static contactProduct(product: Product, phoneNumber: string = '68981215219'): void {
     const message = this.generateMessage(product);
     this.openWhatsApp(phoneNumber, message);
   }
