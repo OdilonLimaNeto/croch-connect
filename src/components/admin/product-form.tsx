@@ -139,7 +139,7 @@ const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, disabled
   );
 };
 
-const MAX_IMAGES = 3;
+
 
 interface ProductFormProps {
   open: boolean;
@@ -285,14 +285,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const handleImagesChange = (newFiles: File[]) => {
-    const currentImageCount = imageItems.filter(item => !item.isNew).length;
-    const availableSlots = MAX_IMAGES - currentImageCount;
-    
-    if (newFiles.length > availableSlots) {
-      toast.error(`Você pode adicionar no máximo ${availableSlots} imagem(ns). Limite total: ${MAX_IMAGES} imagens por produto.`);
-      return;
-    }
-    
     // Clean up old object URLs from previous new images
     imageItems.filter(item => item.isNew).forEach(item => {
       URL.revokeObjectURL(item.url);
@@ -632,14 +624,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             <div className="space-y-4">
               <FormLabel>Imagens do Produto</FormLabel>
               <div className="text-sm text-muted-foreground">
-                Máximo de {MAX_IMAGES} imagens. Arraste para reordenar.
+                Sem limite de imagens. Arraste para reordenar.
               </div>
               
               {/* Current Images with Drag & Drop */}
               {imageItems.length > 0 && (
                 <div className="space-y-2">
                   <div className="text-sm font-medium">
-                    Imagens atuais ({imageItems.length}/{MAX_IMAGES}):
+                    Imagens atuais ({imageItems.length}):
                   </div>
                   <DndContext
                     sensors={sensors}
@@ -666,27 +658,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               )}
 
               {/* Add New Images */}
-              {imageItems.length < MAX_IMAGES && (
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">
-                    Adicionar novas imagens ({images.length}/{MAX_IMAGES - imageItems.length} disponível(is)):
-                  </div>
-                  <ImageUpload
-                    images={images}
-                    onImagesChange={handleImagesChange}
-                    maxImages={MAX_IMAGES - imageItems.length}
-                    maxSize={5}
-                    disabled={loading}
-                    existingImagesCount={imageItems.length}
-                  />
+              <div className="space-y-2">
+                <div className="text-sm font-medium">
+                  Adicionar novas imagens ({images.length} selecionada(s)):
                 </div>
-              )}
-
-              {imageItems.length >= MAX_IMAGES && (
-                <div className="bg-muted/50 border border-dashed rounded-lg p-4 text-center text-sm text-muted-foreground">
-                  Limite máximo de {MAX_IMAGES} imagens atingido. Remova uma imagem para adicionar outra.
-                </div>
-              )}
+                <ImageUpload
+                  images={images}
+                  onImagesChange={handleImagesChange}
+                  maxImages={999}
+                  maxSize={5}
+                  disabled={loading}
+                  existingImagesCount={imageItems.length}
+                />
+              </div>
             </div>
 
             <FormField

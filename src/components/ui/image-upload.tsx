@@ -25,7 +25,7 @@ interface ImageUploadProps {
 export const ImageUpload: React.FC<ImageUploadProps> = ({
   images,
   onImagesChange,
-  maxImages = 3,
+  maxImages = 999,
   maxSize = 5,
   className,
   disabled = false,
@@ -122,8 +122,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 Arraste imagens ou clique para selecionar
               </p>
               <div className="flex justify-center gap-4 mt-2 text-xs text-muted-foreground">
-                <span>Máximo: {maxImages} imagens</span>
-                <span>Restante: {maxImages - existingImagesCount - images.length}</span>
                 <span>Tamanho: até {maxSize}MB cada</span>
               </div>
             </div>
@@ -144,7 +142,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-medium text-foreground">
-              Novas Imagens ({images.length}/{maxImages - existingImagesCount})
+              Novas Imagens ({images.length})
             </h4>
             {images.length > 0 && (
               <Badge variant="secondary" className="text-xs">
