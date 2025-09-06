@@ -23,6 +23,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { Product, Material } from '@/types';
@@ -119,10 +126,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  const addMaterial = () => {
-    if (newMaterial.trim() && !form.getValues('materials')?.includes(newMaterial.trim())) {
+  const addMaterial = (materialName?: string) => {
+    const materialToAdd = materialName || newMaterial.trim();
+    if (materialToAdd && !form.getValues('materials')?.includes(materialToAdd)) {
       const currentMaterials = form.getValues('materials') || [];
-      form.setValue('materials', [...currentMaterials, newMaterial.trim()]);
+      form.setValue('materials', [...currentMaterials, materialToAdd]);
       setNewMaterial('');
     }
   };
@@ -278,38 +286,81 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
             <div className="space-y-3">
               <FormLabel>Materiais</FormLabel>
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Adicionar material..."
-                  value={newMaterial}
-                  onChange={(e) => setNewMaterial(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMaterial())}
-                  disabled={loading}
-                />
-                <Button 
-                  type="button" 
-                  onClick={addMaterial}
-                  disabled={!newMaterial.trim() || loading}
-                >
-                  Adicionar
-                </Button>
+              
+              {/* Select from existing materials */}
+              {materials.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Selecionar material existente:</p>
+                  <Select onValueChange={(value) => addMaterial(value)} disabled={loading}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um material..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {materials
+                        .filter(material => !selectedMaterials.includes(material.name))
+                        .map((material) => (
+                          <SelectItem key={material.id} value={material.name}>
+                            <div className="flex items-center gap-2">
+                              {material.color && (
+                                <div 
+                                  className="w-3 h-3 rounded-full border" 
+                                  style={{ backgroundColor: material.color }}
+                                />
+                              )}
+                              <span>{material.name}</span>
+                              {material.description && (
+                                <span className="text-xs text-muted-foreground">
+                                  - {material.description}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Add new material */}
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Ou adicionar novo material:</p>
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Nome do novo material..."
+                    value={newMaterial}
+                    onChange={(e) => setNewMaterial(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMaterial())}
+                    disabled={loading}
+                  />
+                  <Button 
+                    type="button" 
+                    onClick={() => addMaterial()}
+                    disabled={!newMaterial.trim() || loading}
+                  >
+                    Adicionar
+                  </Button>
+                </div>
               </div>
               
+              {/* Selected materials */}
               {selectedMaterials.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedMaterials.map((material) => (
-                    <Badge key={material} variant="secondary" className="gap-1">
-                      {material}
-                      <button
-                        type="button"
-                        onClick={() => removeMaterial(material)}
-                        className="hover:bg-muted rounded-full p-0.5"
-                        disabled={loading}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Materiais selecionados:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedMaterials.map((material) => (
+                      <Badge key={material} variant="secondary" className="gap-1">
+                        {material}
+                        <button
+                          type="button"
+                          onClick={() => removeMaterial(material)}
+                          className="hover:bg-muted rounded-full p-0.5"
+                          disabled={loading}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
