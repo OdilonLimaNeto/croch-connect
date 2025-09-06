@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Eye } from 'lucide-react';
+import { MessageCircle, Eye, Tag } from 'lucide-react';
 import { Product } from '@/types';
 import { WhatsAppService } from '@/services/api';
 import { cn } from '@/lib/utils';
@@ -52,16 +52,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
+        {/* Item em Promoção Tag */}
+        {hasPromotion && (
+          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-accent to-accent-light text-white shadow-md border-0 px-2 py-1 text-xs font-semibold uppercase tracking-wide z-10">
+            <Tag className="w-3 h-3 mr-1" />
+            Item em Promoção
+          </Badge>
+        )}
+
         {/* Promotion Badge */}
         {hasPromotion && (
-          <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
+          <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground shadow-md">
             -{Math.round(((originalPrice! - displayPrice!) / originalPrice!) * 100)}%
           </Badge>
         )}
 
         {/* Stock Status */}
         {product.stock_quantity === 0 && (
-          <Badge variant="destructive" className="absolute top-2 right-2">
+          <Badge variant="destructive" className="absolute top-12 right-2">
             Esgotado
           </Badge>
         )}
