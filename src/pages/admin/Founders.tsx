@@ -283,23 +283,21 @@ export default function Founders() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1"
                             onClick={() => startEdit(founder)}
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-4 h-4 mr-2" />
                             Editar
                           </Button>
                           
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1"
                             onClick={() => handleToggleStatus(founder.id, founder.is_active)}
                           >
                             {founder.is_active ? (
-                              <EyeOff className="w-4 h-4" />
+                              <EyeOff className="w-4 h-4 mr-2" />
                             ) : (
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-4 h-4 mr-2" />
                             )}
                             {founder.is_active ? 'Desativar' : 'Ativar'}
                           </Button>
@@ -307,10 +305,9 @@ export default function Founders() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1"
                             onClick={() => handleDeleteFounder(founder.id)}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4 mr-2" />
                             Excluir
                           </Button>
                         </div>
