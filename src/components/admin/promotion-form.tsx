@@ -359,6 +359,7 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
       }).filter(Boolean);
       
       // Update product images if there are changes
+      const selectedProduct = products.find(p => p.id === data.product_id);
       if (images.length > 0 || existingImages.length !== (selectedProduct?.images?.length || 0)) {
         const updateResult = await ProductService.updateProduct(data.product_id, {
           images: allImages
@@ -370,9 +371,16 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
         }
       }
       
-      if (isEdit) {
-        // TODO: Implement promotion update
-        toast.info('Edição de promoção ainda não implementada');
+      if (isEdit && promotion) {
+        const result = await PromotionService.updatePromotion(promotion.id, data as PromotionFormData);
+        
+        if (result.success) {
+          toast.success('Promoção atualizada com sucesso!');
+          handleClose();
+          onSuccess?.();
+        } else {
+          toast.error(result.error || 'Erro ao atualizar promoção');
+        }
       } else {
         const result = await PromotionService.createPromotion(data as PromotionFormData);
         

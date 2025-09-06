@@ -198,6 +198,26 @@ export class PromotionService {
     }
   }
 
+  static async updatePromotion(id: string, promotionData: PromotionFormData): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('promotions')
+        .update({
+          product_id: promotionData.product_id,
+          discount_percentage: promotionData.discount_percentage,
+          start_date: promotionData.start_date.toISOString(),
+          end_date: promotionData.end_date.toISOString(),
+          is_active: promotionData.is_active,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
   static async deletePromotions(ids: string[]): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
