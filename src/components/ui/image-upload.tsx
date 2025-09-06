@@ -25,7 +25,7 @@ interface ImageUploadProps {
 export const ImageUpload: React.FC<ImageUploadProps> = ({
   images,
   onImagesChange,
-  maxImages = 5,
+  maxImages = 3,
   maxSize = 5,
   className,
   disabled = false,

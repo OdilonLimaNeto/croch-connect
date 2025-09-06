@@ -28,6 +28,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -38,7 +39,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Package, GripVertical, Trash2 } from 'lucide-react';
+import { CalendarIcon, Package, GripVertical, Trash2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DndContext,
@@ -141,7 +142,7 @@ const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, disabled
   );
 };
 
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 3;
 
 interface PromotionFormProps {
   open: boolean;
@@ -598,66 +599,52 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
               />
             </div>
 
-            {/* Product Images Section */}
+            {/* Product Images Section - Read Only */}
             {form.watch('product_id') && (
               <div className="space-y-4">
                 <FormLabel>Imagens do Produto</FormLabel>
-                <div className="text-sm text-muted-foreground">
-                  Máximo de {MAX_IMAGES} imagens. Arraste para reordenar.
-                </div>
                 
-                {/* Current Images with Drag & Drop */}
+                {/* Current Images - Read Only */}
                 {imageItems.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">
-                      Imagens atuais ({imageItems.length}/{MAX_IMAGES}):
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Imagens atuais (apenas visualização):
                     </div>
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={imageItems.map(item => item.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <div className="grid grid-cols-5 gap-2">
-                          {imageItems.map((imageItem) => (
-                            <SortableImage
-                              key={imageItem.id}
-                              image={imageItem}
-                              onRemove={handleRemoveImage}
-                              disabled={loading}
-                            />
-                          ))}
-                        </div>
-                      </SortableContext>
-                    </DndContext>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {imageItems.map((item, index) => (
+                        <Card key={item.id} className="relative overflow-hidden">
+                          <CardContent className="p-2">
+                            <div className="aspect-square bg-muted rounded-md overflow-hidden relative">
+                              <img
+                                src={item.url}
+                                alt={`Imagem ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="mt-2 text-xs text-muted-foreground text-center">
+                              Posição {index + 1}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                {/* Add New Images */}
-                {imageItems.length < MAX_IMAGES && (
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">
-                      Adicionar novas imagens ({images.length}/{MAX_IMAGES - imageItems.length} disponível(is)):
+                {/* Info */}
+                <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-4 h-4 mt-0.5 text-primary" />
+                    <div>
+                      <p className="font-medium mb-1">Sobre as Imagens:</p>
+                      <ul className="space-y-1">
+                        <li>• Para editar imagens, use o módulo de Produtos</li>
+                        <li>• As promoções utilizam as imagens do produto</li>
+                        <li>• Máximo de {MAX_IMAGES} imagens por produto</li>
+                      </ul>
                     </div>
-                    <ImageUpload
-                      images={images}
-                      onImagesChange={handleImagesChange}
-                      maxImages={MAX_IMAGES - imageItems.length}
-                      maxSize={5}
-                      disabled={loading}
-                      existingImagesCount={imageItems.length}
-                    />
                   </div>
-                )}
-
-                {imageItems.length >= MAX_IMAGES && (
-                  <div className="bg-muted/50 border border-dashed rounded-lg p-4 text-center text-sm text-muted-foreground">
-                    Limite máximo de {MAX_IMAGES} imagens atingido. Remova uma imagem para adicionar outra.
-                  </div>
-                )}
+                </div>
               </div>
             )}
 

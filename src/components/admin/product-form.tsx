@@ -139,7 +139,7 @@ const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, disabled
   );
 };
 
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 3;
 
 interface ProductFormProps {
   open: boolean;
