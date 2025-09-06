@@ -16,13 +16,19 @@ export class ProductService {
       
       // Get active promotions to check which products are in promotion
       const activePromotions = await this.getActivePromotions();
-      const promotionProductIds = new Set(activePromotions.map(p => p.product_id));
+      const promotionsMap = new Map(activePromotions.map(p => [p.product_id, p]));
       
-      // Add promotion status to products
-      return (products || []).map(product => ({
-        ...product,
-        hasActivePromotion: promotionProductIds.has(product.id)
-      }));
+      // Add promotion status and calculate promotional price
+      return (products || []).map(product => {
+        const promotion = promotionsMap.get(product.id);
+        const hasActivePromotion = promotion && product.promotional_price && product.promotional_price < product.price;
+        
+        return {
+          ...product,
+          hasActivePromotion: !!hasActivePromotion,
+          promotionDiscount: promotion ? promotion.discount_percentage : null
+        };
+      });
     } catch (error) {
       console.error('Error fetching products:', error);
       return [];

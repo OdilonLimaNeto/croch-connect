@@ -11,6 +11,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   hasActivePromotion?: boolean;
+  promotionDiscount?: number | null;
 }
 
 export interface Promotion {

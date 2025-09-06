@@ -18,8 +18,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onViewDetails,
   className 
 }) => {
-  const hasPromotion = product.hasActivePromotion && product.promotional_price && product.promotional_price < product.price;
-  const displayPrice = hasPromotion ? product.promotional_price : product.price;
+  const hasPromotion = product.hasActivePromotion;
+  const displayPrice = hasPromotion ? product.promotional_price! : product.price;
   const originalPrice = hasPromotion ? product.price : null;
   
   const handleWhatsApp = (e: React.MouseEvent) => {
@@ -116,25 +116,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-3">
+        {/* Action Buttons - Mobile First */}
+        <div className="flex flex-col gap-2 pt-3">
           <Button
             onClick={handleViewDetails}
             variant="outline"
             size="sm"
-            className="w-full sm:flex-1 gap-2 h-10 hover:bg-muted/50 border-muted-foreground/20 hover:border-primary/50 transition-all duration-200"
+            className="w-full gap-2 h-9 hover:bg-muted/50 border-muted-foreground/20 hover:border-primary/50 transition-all duration-200 text-sm"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-3.5 h-3.5" />
             <span className="font-medium">Ver Detalhes</span>
           </Button>
           
           <Button
             onClick={handleWhatsApp}
             size="sm"
-            className="w-full sm:flex-1 gap-2 h-10 bg-success hover:bg-success/90 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+            className="w-full gap-2 h-9 bg-success hover:bg-success/90 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 text-sm"
             disabled={product.stock_quantity === 0}
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-3.5 h-3.5" />
             <span>WhatsApp</span>
           </Button>
         </div>

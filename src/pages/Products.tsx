@@ -157,14 +157,14 @@ const Products = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      {/* Page Header */}
-      <section className="bg-gradient-subtle py-12">
-        <div className="container mx-auto px-4">
+      {/* Page Header - Mobile First */}
+      <section className="bg-gradient-subtle py-8 sm:py-12">
+        <div className="container mx-auto px-3 sm:px-4">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-primary mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-3 sm:mb-4">
               Nossos Produtos
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
               Descubra nossa coleção completa de produtos artesanais em crochê, 
               feitos com carinho especialmente para sua família.
             </p>
@@ -172,74 +172,78 @@ const Products = () => {
         </div>
       </section>
 
-      {/* Filters Section */}
+      {/* Filters Section - Mobile First */}
       <section className="bg-card border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
+        <div className="container mx-auto px-3 py-4">
+          <div className="space-y-4">
+            {/* Search - Full width on mobile */}
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar produtos..."
                 value={filters.search || ''}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-10"
               />
             </div>
 
-            {/* Sort */}
-            <div className="flex items-center gap-2">
-              <SortAsc className="w-4 h-4 text-muted-foreground" />
-              <Select onValueChange={handleSortChange} value={filters.sort_by || ''}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Ordenar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="created_desc">Mais recentes</SelectItem>
-                  <SelectItem value="price_asc">Menor preço</SelectItem>
-                  <SelectItem value="price_desc">Maior preço</SelectItem>
-                  <SelectItem value="name_asc">Nome A-Z</SelectItem>
-                  <SelectItem value="name_desc">Nome Z-A</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Sort and Clear Filters Row */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 flex-1">
+                <SortAsc className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <Select onValueChange={handleSortChange} value={filters.sort_by || ''}>
+                  <SelectTrigger className="w-full sm:w-auto">
+                    <SelectValue placeholder="Ordenar por" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="created_desc">Mais recentes</SelectItem>
+                    <SelectItem value="price_asc">Menor preço</SelectItem>
+                    <SelectItem value="price_desc">Maior preço</SelectItem>
+                    <SelectItem value="name_asc">Nome A-Z</SelectItem>
+                    <SelectItem value="name_desc">Nome Z-A</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} size="sm" className="w-full sm:w-auto">
+                  Limpar Filtros
+                </Button>
+              )}
             </div>
 
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <Button variant="outline" onClick={clearFilters} size="sm">
-                Limpar Filtros
-              </Button>
+            {/* Material Filters - Responsive */}
+            {materials.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter className="w-4 h-4" />
+                  <span>Materiais:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {materials.map((material) => (
+                    <Badge
+                      key={material}
+                      variant={filters.materials?.includes(material) ? "default" : "secondary"}
+                      className="cursor-pointer hover:bg-primary/20 transition-colors text-xs px-2 py-1"
+                      onClick={() => handleMaterialToggle(material)}
+                    >
+                      {material}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-
-          {/* Material Filters */}
-          {materials.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                Materiais:
-              </span>
-              {materials.map((material) => (
-                <Badge
-                  key={material}
-                  variant={filters.materials?.includes(material) ? "default" : "secondary"}
-                  className="cursor-pointer hover:bg-primary/20 transition-colors"
-                  onClick={() => handleMaterialToggle(material)}
-                >
-                  {material}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
       </section>
 
-      {/* Products Grid */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
+      {/* Products Grid - Mobile First */}
+      <section className="py-6 sm:py-8 md:py-12">
+        <div className="container mx-auto px-3 sm:px-4">
           {/* Results Info */}
-          <div className="flex justify-between items-center mb-8">
-            <p className="text-muted-foreground">
+          <div className="flex justify-between items-center mb-4 sm:mb-6 md:mb-8">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {loading ? 'Carregando...' : `${filteredProducts.length} produto${filteredProducts.length !== 1 ? 's' : ''} encontrado${filteredProducts.length !== 1 ? 's' : ''}`}
             </p>
           </div>
