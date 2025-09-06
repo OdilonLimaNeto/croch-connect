@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const Header = () => {
   const location = useLocation();
@@ -42,13 +43,16 @@ const Header = () => {
           </Link>
         </nav>
 
-        {/* Admin Access */}
-        <Link to="/admin/login">
-          <Button variant="outline" size="sm" className="gap-2">
-            <User className="w-4 h-4" />
-            Admin
-          </Button>
-        </Link>
+        {/* Theme Toggle & Admin Access */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link to="/admin/login">
+            <Button variant="outline" size="sm" className="gap-2">
+              <User className="w-4 h-4" />
+              Admin
+            </Button>
+          </Link>
+        </div>
       </div>
     </header>
   );
