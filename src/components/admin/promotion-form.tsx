@@ -31,7 +31,7 @@ import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Product, Promotion } from '@/types';
+import { Product, Promotion, PromotionFormData } from '@/types';
 import { ProductService, PromotionService } from '@/services/api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -56,7 +56,7 @@ const promotionSchema = z.object({
   path: ["end_date"],
 });
 
-type PromotionFormData = z.infer<typeof promotionSchema>;
+type PromotionFormDataLocal = z.infer<typeof promotionSchema>;
 
 interface PromotionFormProps {
   open: boolean;
@@ -75,7 +75,7 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const isEdit = !!promotion;
 
-  const form = useForm<PromotionFormData>({
+  const form = useForm<PromotionFormDataLocal>({
     resolver: zodResolver(promotionSchema),
     defaultValues: {
       product_id: '',
@@ -122,12 +122,24 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
     }
   };
 
-  const onSubmit = async (data: PromotionFormData) => {
+  const onSubmit = async (data: PromotionFormDataLocal) => {
     try {
       setLoading(true);
       
-      // TODO: Implement promotion creation/update
-      toast.info(`${isEdit ? 'Edição' : 'Criação'} de promoção ainda não implementada`);
+      if (isEdit) {
+        // TODO: Implement promotion update
+        toast.info('Edição de promoção ainda não implementada');
+      } else {
+        const result = await PromotionService.createPromotion(data as PromotionFormData);
+        
+        if (result.success) {
+          toast.success('Promoção criada com sucesso!');
+          handleClose();
+          onSuccess?.();
+        } else {
+          toast.error(result.error || 'Erro ao criar promoção');
+        }
+      }
       
     } catch (error) {
       toast.error(`Erro ao ${isEdit ? 'editar' : 'criar'} promoção`);
