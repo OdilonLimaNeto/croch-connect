@@ -38,10 +38,10 @@ export const AboutFounders = () => {
     const loadFounders = async () => {
       try {
         const data = await FounderService.getFounders(true); // Only active founders
-        setFounders(data.length > 0 ? data : fallbackFounders);
+        setFounders(data);
       } catch (error) {
         console.error('Error loading founders:', error);
-        setFounders(fallbackFounders);
+        setFounders([]);
       } finally {
         setLoading(false);
       }
@@ -60,6 +60,11 @@ export const AboutFounders = () => {
         </div>
       </section>
     );
+  }
+
+  // Hide section if no active founders
+  if (founders.length === 0) {
+    return null;
   }
 
   return (
