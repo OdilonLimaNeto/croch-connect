@@ -1,24 +1,69 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Star, Award, User } from 'lucide-react';
-const AboutFounders = () => {
-  const founders = [{
-    name: "Ana Kaleny",
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Heart, Award, Star, User } from "lucide-react";
+import { FounderService } from "@/services/founderService";
+import { Founder } from "@/types";
+
+export const AboutFounders = () => {
+  const [founders, setFounders] = useState<Founder[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fallback data for when there's no data in the database
+  const fallbackFounders: Founder[] = [{
+    id: "fallback-1",
+    name: "Ana Carolina",
     role: "Fundadora & Artesã",
     description: "Especialista em técnicas tradicionais e inovadoras.",
     expertise: ["Crochê Tradicional", "Peças Infantis"],
-    icon: <Heart className="w-6 h-6" />,
-    image: "/founder-ana.jpg"
+    image_url: "/founder-ana.jpg",
+    display_order: 0,
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   }, {
+    id: "fallback-2",
     name: "Thayná Feitosa",
     role: "Co-Fundadora & Artesã",
     description: "Sua paixão por detalhes garante que cada produto seja perfeito.",
     expertise: ["Controle de Qualidade", "Seleção de Materiais", "Acabamentos"],
-    icon: <Award className="w-6 h-6" />,
-    image: "/founder-thayna.jpg"
+    image_url: "/founder-thayna.jpg",
+    display_order: 1,
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   }];
-  return <section className="py-16 bg-background">
+
+  useEffect(() => {
+    const loadFounders = async () => {
+      try {
+        const data = await FounderService.getFounders(true); // Only active founders
+        setFounders(data.length > 0 ? data : fallbackFounders);
+      } catch (error) {
+        console.error('Error loading founders:', error);
+        setFounders(fallbackFounders);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFounders();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-pulse">Carregando...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge className="mx-auto w-fit bg-accent/10 text-accent border-accent/20 mb-4">
@@ -35,25 +80,31 @@ const AboutFounders = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {founders.map((founder, index) => <Card key={index} className="group hover:shadow-elegant transition-all duration-300">
+          {founders.map((founder, index) => (
+            <Card key={founder.id} className="group hover:shadow-elegant transition-all duration-300">
               <CardContent className="p-8">
                 <div className="flex items-start gap-6">
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 rounded-full overflow-hidden bg-primary/10 border-2 border-primary/20 group-hover:border-primary/30 transition-all duration-300">
-                      <img 
-                        src={founder.image} 
-                        alt={`${founder.name} - ${founder.role}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback to icon if image fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const fallback = target.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'flex';
-                        }}
-                      />
-                      <div className="w-full h-full bg-primary/10 flex items-center justify-center" style={{ display: 'none' }}>
-                        {founder.icon}
+                      {founder.image_url ? (
+                        <img 
+                          src={founder.image_url} 
+                          alt={`${founder.name} - ${founder.role}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to icon if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className="w-full h-full bg-primary/10 flex items-center justify-center" 
+                        style={{ display: founder.image_url ? 'none' : 'flex' }}
+                      >
+                        <User className="w-8 h-8 text-primary" />
                       </div>
                     </div>
                   </div>
@@ -66,23 +117,33 @@ const AboutFounders = () => {
                       {founder.role}
                     </Badge>
                     
-                    <p className="text-muted-foreground mb-6 leading-relaxed">
-                      {founder.description}
-                    </p>
+                    {founder.description && (
+                      <p className="text-muted-foreground mb-6 leading-relaxed">
+                        {founder.description}
+                      </p>
+                    )}
                     
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-3"></h4>
-                      <div className="flex flex-wrap gap-2">
-                        {founder.expertise.map((skill, skillIndex) => <Badge key={skillIndex} variant="outline" className="text-xs border-primary/30 text-primary hover:bg-primary/10 my-0 py-0 mx-0 px-[17px]">
-                            <Star className="w-3 h-3 mr-1" />
-                            {skill}
-                          </Badge>)}
+                    {founder.expertise.length > 0 && (
+                      <div>
+                        <div className="flex flex-wrap gap-2">
+                          {founder.expertise.map((skill, skillIndex) => (
+                            <Badge 
+                              key={skillIndex} 
+                              variant="outline" 
+                              className="text-xs border-primary/30 text-primary hover:bg-primary/10"
+                            >
+                              <Star className="w-3 h-3 mr-1" />
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
-            </Card>)}
+            </Card>
+          ))}
         </div>
 
         <div className="text-center mt-12">
@@ -97,6 +158,8 @@ const AboutFounders = () => {
           </Card>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default AboutFounders;

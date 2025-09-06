@@ -72,6 +72,28 @@ export interface WhatsAppMessage {
   message: string;
 }
 
+export interface Founder {
+  id: string;
+  name: string;
+  role: string;
+  description: string | null;
+  expertise: string[];
+  image_url: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FounderFormData {
+  name: string;
+  role: string;
+  description: string;
+  expertise: string[];
+  display_order: number;
+  image?: File;
+}
+
 export type UserRole = 'admin' | 'user';
 
 // Form schemas for validation

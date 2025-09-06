@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      founders: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          expertise: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          expertise?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          expertise?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       materials: {
         Row: {
           color: string | null

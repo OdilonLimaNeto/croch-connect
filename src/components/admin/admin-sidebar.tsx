@@ -48,6 +48,11 @@ const menuItems = [
     icon: Palette,
   },
   {
+    title: 'Fundadoras',
+    url: '/admin/fundadoras',
+    icon: User,
+  },
+  {
     title: 'Usuários',
     url: '/admin/usuarios',
     icon: Users,

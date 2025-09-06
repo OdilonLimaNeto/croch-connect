@@ -14,6 +14,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminPromotions from "./pages/admin/Promotions";
 import AdminMaterials from "./pages/admin/Materials";
+import AdminFounders from "./pages/admin/Founders";
 import AdminUsers from "./pages/admin/Users";
 import NotFound from "./pages/NotFound";
 
@@ -58,6 +59,11 @@ const App = () => (
             <Route path="/admin/materiais" element={
               <ProtectedRoute requireAdmin>
                 <AdminMaterials />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/fundadoras" element={
+              <ProtectedRoute requireAdmin>
+                <AdminFounders />
               </ProtectedRoute>
             } />
             <Route path="/admin/usuarios" element={
