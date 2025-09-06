@@ -24,7 +24,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -63,7 +63,9 @@ const AdminLogin = () => {
 
       if (loggedUser?.profile?.role === 'admin') {
         toast.success('Login realizado com sucesso!');
-        // Remove o redirecionamento manual - deixa o useEffect gerenciar
+        // Atualiza o estado do useAuth e redireciona
+        await refreshUser();
+        navigate('/admin/dashboard', { replace: true });
       } else if (loggedUser) {
         toast.error('Acesso negado. Apenas administradores podem acessar este painel.');
         await AuthService.signOut(); // Faz logout se não for admin
