@@ -14,15 +14,20 @@ export class ProductService {
 
       if (error) throw error;
       
+      // Return empty array if no products found
+      if (!products || products.length === 0) {
+        return [];
+      }
+      
       // Get active promotions to check which products are in promotion
       const activePromotions = await this.getActivePromotions();
       const promotionsMap = new Map(activePromotions.map(p => [p.product_id, p]));
       
-      // Add promotion status and calculate promotional price
-      return (products || []).map(product => {
+      // Add promotion status and calculate promotional price for ALL products
+      return products.map(product => {
         const promotion = promotionsMap.get(product.id);
         
-        // Check for active promotion from promotions table OR promotional_price field
+        // Initialize promotion properties for all products
         let hasActivePromotion = false;
         let effectivePromotionalPrice = product.promotional_price;
         let promotionDiscount = null;
@@ -39,6 +44,7 @@ export class ProductService {
           promotionDiscount = Math.round(((product.price - product.promotional_price) / product.price) * 100);
         }
         
+        // Return product with promotion data (will be false/null for non-promotional products)
         return {
           ...product,
           promotional_price: effectivePromotionalPrice,
