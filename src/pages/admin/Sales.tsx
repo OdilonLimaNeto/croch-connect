@@ -8,9 +8,11 @@ import { DataTable } from '@/components/ui/data-table';
 import { Filters } from '@/components/admin/filters';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SaleForm } from '@/components/admin/sale-form';
+import { ExpenseForm } from '@/components/admin/expense-form';
 import { SalesService } from '@/services/salesService';
 import { ExpensesService } from '@/services/expensesService';
-import { Sale, Expense, Installment } from '@/types';
+import { Sale, Expense, Installment, SaleFormData, ExpenseFormData } from '@/types';
 import { TableColumn } from '@/types';
 import { Plus, Search, Edit, Trash2, Eye, DollarSign, ShoppingCart, Receipt } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +23,9 @@ export default function Sales() {
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('sales');
+  const [showSaleForm, setShowSaleForm] = useState(false);
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
     status: '',
@@ -102,6 +107,31 @@ export default function Sales() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    // Update overdue installments
+    updateOverdueInstallments();
+  }, [installments]);
+
+  const updateOverdueInstallments = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const overdueInstallments = installments.filter(
+      inst => inst.status === 'pending' && inst.due_date < today
+    );
+
+    if (overdueInstallments.length > 0) {
+      try {
+        await Promise.all(
+          overdueInstallments.map(inst =>
+            SalesService.updateInstallmentStatus(inst.id, 'overdue')
+          )
+        );
+        // Silently update without reloading to avoid infinite loop
+      } catch (error) {
+        console.error('Error updating overdue installments:', error);
+      }
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -128,6 +158,101 @@ export default function Sales() {
 
   const handleFilterChange = (newFilters: typeof filters) => {
     setFilters(newFilters);
+  };
+
+  const handleCreateSale = async (saleData: SaleFormData) => {
+    setFormLoading(true);
+    try {
+      const result = await SalesService.createSale(saleData);
+      
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Venda criada com sucesso.',
+        });
+        
+        setShowSaleForm(false);
+        await loadData(); // Reload data
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error || 'Erro ao criar venda.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating sale:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao criar venda.',
+        variant: 'destructive'
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleCreateExpense = async (expenseData: ExpenseFormData) => {
+    setFormLoading(true);
+    try {
+      const result = await ExpensesService.createExpense(expenseData);
+      
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Gasto registrado com sucesso.',
+        });
+        
+        setShowExpenseForm(false);
+        await loadData(); // Reload data
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error || 'Erro ao registrar gasto.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating expense:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao registrar gasto.',
+        variant: 'destructive'
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleUpdateInstallmentStatus = async (installmentId: string, status: 'paid' | 'pending') => {
+    setFormLoading(true);
+    try {
+      const result = await SalesService.updateInstallmentStatus(installmentId, status);
+      
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: `Parcela marcada como ${status === 'paid' ? 'paga' : 'pendente'}.`,
+        });
+        
+        await loadData(); // Reload data
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error || 'Erro ao atualizar parcela.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating installment:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao atualizar parcela.',
+        variant: 'destructive'
+      });
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -292,6 +417,34 @@ export default function Sales() {
       key: 'paid_date',
       label: 'Data Pagamento',
       render: (value) => value ? formatDate(value as string) : '-'
+    },
+    {
+      key: 'id',
+      label: 'Ações',
+      render: (value, item) => (
+        <div className="flex gap-2">
+          {item.status === 'pending' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleUpdateInstallmentStatus(item.id, 'paid')}
+              disabled={formLoading}
+            >
+              Marcar como Pago
+            </Button>
+          )}
+          {item.status === 'paid' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleUpdateInstallmentStatus(item.id, 'pending')}
+              disabled={formLoading}
+            >
+              Marcar como Pendente
+            </Button>
+          )}
+        </div>
+      )
     }
   ];
 
@@ -307,14 +460,49 @@ export default function Sales() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Venda
-            </Button>
-            <Button variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Gasto
-            </Button>
+            <Dialog open={showSaleForm} onOpenChange={setShowSaleForm}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Venda
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Nova Venda</DialogTitle>
+                  <DialogDescription>
+                    Registre uma nova venda no sistema
+                  </DialogDescription>
+                </DialogHeader>
+                <SaleForm
+                  onSubmit={handleCreateSale}
+                  onCancel={() => setShowSaleForm(false)}
+                  isLoading={formLoading}
+                />
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog open={showExpenseForm} onOpenChange={setShowExpenseForm}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Gasto
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Novo Gasto</DialogTitle>
+                  <DialogDescription>
+                    Registre um novo gasto no sistema
+                  </DialogDescription>
+                </DialogHeader>
+                <ExpenseForm
+                  onSubmit={handleCreateExpense}
+                  onCancel={() => setShowExpenseForm(false)}
+                  isLoading={formLoading}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
