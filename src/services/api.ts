@@ -34,9 +34,13 @@ export class ProductService {
         
         // First check if there's an active promotion from promotions table
         if (promotion) {
-          hasActivePromotion = true;
-          effectivePromotionalPrice = product.price * (1 - promotion.discount_percentage / 100);
-          promotionDiscount = promotion.discount_percentage;
+          const calculatedPrice = product.price * (1 - promotion.discount_percentage / 100);
+          // Only consider it a valid promotion if it results in a lower price
+          if (calculatedPrice < product.price) {
+            hasActivePromotion = true;
+            effectivePromotionalPrice = calculatedPrice;
+            promotionDiscount = promotion.discount_percentage;
+          }
         }
         // Otherwise check promotional_price field
         else if (product.promotional_price && product.promotional_price < product.price) {
