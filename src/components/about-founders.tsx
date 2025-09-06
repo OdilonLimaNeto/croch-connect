@@ -6,16 +6,16 @@ import { Heart, Star, Award, User } from 'lucide-react';
 const AboutFounders = () => {
   const founders = [
     {
-      name: "Maria Silva",
-      role: "Fundadora & Artesã Principal",
-      description: "Com mais de 15 anos de experiência em crochê, Maria é a mente criativa por trás de cada peça única. Especialista em técnicas tradicionais e inovadoras.",
-      expertise: ["Crochê Tradicional", "Peças Infantis", "Design de Padrões"],
+      name: "Ana Kaleny",
+      role: "Fundadora & Artesã",
+      description: "Especialista em técnicas tradicionais e inovadoras.",
+      expertise: ["Crochê Tradicional", "Peças Infantis"],
       icon: <Heart className="w-6 h-6" />
     },
     {
-      name: "Ana Santos",
-      role: "Co-Fundadora & Especialista em Qualidade",
-      description: "Ana cuida da seleção dos melhores materiais e do controle de qualidade. Sua paixão por detalhes garante que cada produto seja perfeito.",
+      name: "Thayná Feitosa",
+      role: "Co-Fundadora & Artesã",
+      description: "Sua paixão por detalhes garante que cada produto seja perfeito.",
       expertise: ["Controle de Qualidade", "Seleção de Materiais", "Acabamentos"],
       icon: <Award className="w-6 h-6" />
     }
@@ -34,7 +34,7 @@ const AboutFounders = () => {
           </h2>
           <p className="text-muted-foreground max-w-3xl mx-auto">
             Somos duas amigas apaixonadas por crochê que transformaram seu hobby em um negócio 
-            dedicado a criar produtos únicos e especiais para famílias em todo o Brasil.
+            dedicado a criar produtos únicos e especiais para pessoas em todo o Acre.
           </p>
         </div>
 
