@@ -31,8 +31,10 @@ import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { Product, Promotion, PromotionFormData } from '@/types';
 import { ProductService, PromotionService } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -73,6 +75,8 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [images, setImages] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const isEdit = !!promotion;
 
   const form = useForm<PromotionFormDataLocal>({
@@ -101,6 +105,11 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
         end_date: new Date(promotion.end_date),
         is_active: promotion.is_active,
       });
+      // Load existing images for the selected product
+      const selectedProduct = products.find(p => p.id === promotion.product_id);
+      if (selectedProduct) {
+        setExistingImages(selectedProduct.images || []);
+      }
     } else {
       form.reset({
         product_id: '',
@@ -109,8 +118,22 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
         end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         is_active: true,
       });
+      setExistingImages([]);
+      setImages([]);
     }
-  }, [promotion, form]);
+  }, [promotion, form, products]);
+
+  // Update existing images when product selection changes
+  useEffect(() => {
+    const productId = form.watch('product_id');
+    const selectedProduct = products.find(p => p.id === productId);
+    if (selectedProduct) {
+      setExistingImages(selectedProduct.images || []);
+    } else {
+      setExistingImages([]);
+    }
+    setImages([]); // Reset new images when product changes
+  }, [form.watch('product_id'), products]);
 
   const loadProducts = async () => {
     try {
@@ -122,9 +145,70 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
     }
   };
 
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+    
+    for (const file of files) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        continue;
+      }
+
+      const { data } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      uploadedUrls.push(data.publicUrl);
+    }
+
+    return uploadedUrls;
+  };
+
+  const deleteImage = async (imageUrl: string) => {
+    try {
+      // Extract file path from URL
+      const url = new URL(imageUrl);
+      const filePath = url.pathname.split('/storage/v1/object/public/product-images/')[1];
+      
+      if (filePath) {
+        await supabase.storage
+          .from('product-images')
+          .remove([filePath]);
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+    }
+  };
+
   const onSubmit = async (data: PromotionFormDataLocal) => {
     try {
       setLoading(true);
+      
+      // Upload new images if any
+      const newImageUrls = images.length > 0 ? await uploadImages(images) : [];
+      
+      // Combine existing and new images
+      const allImages = [...existingImages, ...newImageUrls];
+      
+      // Update product images if there are changes
+      if (images.length > 0 || existingImages.length !== (selectedProduct?.images?.length || 0)) {
+        const updateResult = await ProductService.updateProduct(data.product_id, {
+          images: allImages
+        });
+        
+        if (!updateResult.success) {
+          toast.error('Erro ao atualizar imagens do produto');
+          return;
+        }
+      }
       
       if (isEdit) {
         // TODO: Implement promotion update
@@ -150,7 +234,14 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
 
   const handleClose = () => {
     form.reset();
+    setImages([]);
+    setExistingImages([]);
     onOpenChange(false);
+  };
+
+  const handleRemoveExistingImage = async (imageUrl: string) => {
+    setExistingImages(prev => prev.filter(img => img !== imageUrl));
+    await deleteImage(imageUrl);
   };
 
   const selectedProduct = products.find(p => p.id === form.watch('product_id'));
@@ -326,6 +417,51 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
                 )}
               />
             </div>
+
+            {/* Product Images Section */}
+            {form.watch('product_id') && (
+              <div className="space-y-4">
+                <FormLabel>Imagens do Produto</FormLabel>
+                
+                {/* Existing Images */}
+                {existingImages.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">Imagens atuais:</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {existingImages.map((imageUrl, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={imageUrl}
+                            alt={`Produto ${index + 1}`}
+                            className="w-full h-20 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExistingImage(imageUrl)}
+                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            disabled={loading}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* New Images Upload */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Adicionar novas imagens:</div>
+                  <ImageUpload
+                    images={images}
+                    onImagesChange={setImages}
+                    maxImages={10}
+                    maxSize={5}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            )}
 
             <FormField
               control={form.control}
