@@ -79,11 +79,18 @@ export const MaterialForm: React.FC<MaterialFormProps> = ({
     try {
       setLoading(true);
 
-      const result = await MaterialService.createMaterial(
-        data.name,
-        data.description || undefined,
-        data.color || undefined
-      );
+      const result = isEdit && material
+        ? await MaterialService.updateMaterial(
+            material.id,
+            data.name,
+            data.description || undefined,
+            data.color || undefined
+          )
+        : await MaterialService.createMaterial(
+            data.name,
+            data.description || undefined,
+            data.color || undefined
+          );
 
       if (result.success) {
         toast.success(`Material ${isEdit ? 'editado' : 'criado'} com sucesso!`);

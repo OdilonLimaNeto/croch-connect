@@ -301,6 +301,24 @@ export class MaterialService {
     }
   }
 
+  static async updateMaterial(id: string, name: string, description?: string, color?: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('materials')
+        .update({
+          name,
+          description,
+          color,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
   static async deleteMaterials(ids: string[]): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
