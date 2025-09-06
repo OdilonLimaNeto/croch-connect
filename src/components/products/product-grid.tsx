@@ -47,13 +47,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ${className}`}>
-      {products.map((product) => (
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 p-4 sm:p-6 lg:p-8 ${className}`}>
+      {products.map((product, index) => (
         <ProductCard
           key={product.id}
           product={product}
           onViewDetails={onProductClick}
-          className="animate-fade-in"
+          className="animate-fade-in hover-scale transition-all duration-300"
         />
       ))}
     </div>
