@@ -255,24 +255,6 @@ const ProductDetail = () => {
                 {product.stock_quantity > 0 ? 'Comprar via WhatsApp' : 'Produto Esgotado'}
               </Button>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleShare}
-                  className="flex-1 gap-2"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Compartilhar
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Heart className="w-4 h-4" />
-                  Favoritar
-                </Button>
-              </div>
             </div>
 
             {/* Additional Info */}
