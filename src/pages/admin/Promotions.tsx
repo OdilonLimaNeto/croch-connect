@@ -7,6 +7,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PromotionForm } from '@/components/admin/promotion-form';
+import { Filters, FilterConfig } from '@/components/admin/filters';
 import { 
   Plus, 
   Tag, 
@@ -24,9 +25,14 @@ import { ptBR } from 'date-fns/locale';
 
 const AdminPromotions = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [filteredPromotions, setFilteredPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({
+    search: '',
+    status: 'all'
+  });
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     promotions: Promotion[];
@@ -35,6 +41,31 @@ const AdminPromotions = () => {
   useEffect(() => {
     loadPromotions();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [promotions, filters]);
+
+  const applyFilters = () => {
+    let filtered = [...promotions];
+
+    // Search filter (by product name)
+    if (filters.search) {
+      filtered = filtered.filter(promotion =>
+        promotion.product?.title.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(promotion => {
+        const status = getPromotionStatus(promotion);
+        return status.status === filters.status;
+      });
+    }
+
+    setFilteredPromotions(filtered);
+  };
 
   const loadPromotions = async () => {
     try {
@@ -96,6 +127,37 @@ const AdminPromotions = () => {
     loadPromotions();
     setShowForm(false);
     setEditingPromotion(null);
+  };
+
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'search',
+      label: 'Buscar',
+      type: 'search',
+      placeholder: 'Buscar por produto...'
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'active', label: 'Ativa' },
+        { value: 'scheduled', label: 'Agendada' },
+        { value: 'expired', label: 'Expirada' },
+        { value: 'inactive', label: 'Inativa' }
+      ]
+    }
+  ];
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      status: 'all'
+    });
   };
 
   const getPromotionStatus = (promotion: Promotion) => {
@@ -290,6 +352,14 @@ const AdminPromotions = () => {
           </Card>
         </div>
 
+        {/* Filters */}
+        <Filters
+          configs={filterConfigs}
+          values={filters}
+          onChange={handleFilterChange}
+          onClear={handleClearFilters}
+        />
+
         {/* Promotions Table */}
         <Card>
           <CardHeader>
@@ -297,14 +367,14 @@ const AdminPromotions = () => {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={promotions}
+              data={filteredPromotions}
               columns={columns}
               loading={loading}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onBulkDelete={handleBulkDelete}
               getItemId={(promotion) => promotion.id}
-              emptyMessage="Nenhuma promoção cadastrada"
+              emptyMessage="Nenhuma promoção encontrada"
             />
           </CardContent>
         </Card>

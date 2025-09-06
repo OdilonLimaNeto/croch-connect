@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Filters, FilterConfig } from '@/components/admin/filters';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,16 +32,47 @@ import { Founder, FounderFormData, SiteSettings, SiteSettingsFormData } from '@/
 
 export default function Company() {
   const [founders, setFounders] = useState<Founder[]>([]);
+  const [filteredFounders, setFilteredFounders] = useState<Founder[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFounderForm, setShowFounderForm] = useState(false);
   const [editingFounder, setEditingFounder] = useState<Founder | undefined>();
   const [formLoading, setFormLoading] = useState(false);
+  const [founderFilters, setFounderFilters] = useState<Record<string, string>>({
+    search: '',
+    status: 'all'
+  });
   const { toast } = useToast();
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    applyFounderFilters();
+  }, [founders, founderFilters]);
+
+  const applyFounderFilters = () => {
+    let filtered = [...founders];
+
+    // Search filter
+    if (founderFilters.search) {
+      filtered = filtered.filter(founder =>
+        founder.name.toLowerCase().includes(founderFilters.search.toLowerCase()) ||
+        founder.role.toLowerCase().includes(founderFilters.search.toLowerCase()) ||
+        founder.description?.toLowerCase().includes(founderFilters.search.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (founderFilters.status !== 'all') {
+      filtered = filtered.filter(founder =>
+        founderFilters.status === 'active' ? founder.is_active : !founder.is_active
+      );
+    }
+
+    setFilteredFounders(filtered);
+  };
 
   const loadData = async () => {
     try {
@@ -227,6 +259,35 @@ export default function Company() {
     }
   };
 
+  const founderFilterConfigs: FilterConfig[] = [
+    {
+      key: 'search',
+      label: 'Buscar',
+      type: 'search',
+      placeholder: 'Buscar por nome, cargo ou descrição...'
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'active', label: 'Ativa' },
+        { value: 'inactive', label: 'Inativa' }
+      ]
+    }
+  ];
+
+  const handleFounderFilterChange = (key: string, value: string) => {
+    setFounderFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFounderFilters = () => {
+    setFounderFilters({
+      search: '',
+      status: 'all'
+    });
+  };
+
   if (showFounderForm) {
     return (
       <AdminLayout>
@@ -295,8 +356,16 @@ export default function Company() {
                 </Button>
               </div>
 
+              {/* Filters */}
+              <Filters
+                configs={founderFilterConfigs}
+                values={founderFilters}
+                onChange={handleFounderFilterChange}
+                onClear={handleClearFounderFilters}
+              />
+
               <div className="grid gap-6">
-                {founders.length === 0 ? (
+                {filteredFounders.length === 0 ? (
                   <Card>
                     <CardContent className="py-8 text-center">
                       <User className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -313,7 +382,7 @@ export default function Company() {
                     </CardContent>
                   </Card>
                 ) : (
-                  founders.map((founder) => (
+                  filteredFounders.map((founder) => (
                     <Card key={founder.id}>
                       <CardContent className="p-6">
                         <div className="flex items-start gap-6">

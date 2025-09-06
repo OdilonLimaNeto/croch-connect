@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Filters, FilterConfig } from '@/components/admin/filters';
 
 import { Loader2, Plus, UserPlus, Shield, User, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { AuthService } from '@/lib/auth';
@@ -38,6 +39,7 @@ type EditUserFormData = z.infer<typeof editUserSchema>;
 
 const Users = () => {
   const [users, setUsers] = useState<Profile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [createLoading, setCreateLoading] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
@@ -48,6 +50,10 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({
+    search: '',
+    role: 'all'
+  });
 
   const form = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserSchema),
@@ -94,6 +100,58 @@ const Users = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [users, filters]);
+
+  const applyFilters = () => {
+    let filtered = [...users];
+
+    // Search filter
+    if (filters.search) {
+      filtered = filtered.filter(user =>
+        user.full_name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.email.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Role filter
+    if (filters.role !== 'all') {
+      filtered = filtered.filter(user => user.role === filters.role);
+    }
+
+    setFilteredUsers(filtered);
+  };
+
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'search',
+      label: 'Buscar',
+      type: 'search',
+      placeholder: 'Buscar por nome ou email...'
+    },
+    {
+      key: 'role',
+      label: 'Função',
+      type: 'select',
+      options: [
+        { value: 'admin', label: 'Administrador' },
+        { value: 'user', label: 'Usuário' }
+      ]
+    }
+  ];
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      role: 'all'
+    });
+  };
 
   const onCreateUser = async (data: CreateUserFormData) => {
     setCreateLoading(true);
@@ -477,7 +535,7 @@ const Users = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user.id} className="border-b hover:bg-muted/50">
                       <td className="p-4">{user.full_name}</td>
                       <td className="p-4 text-muted-foreground">{user.email}</td>

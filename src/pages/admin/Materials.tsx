@@ -7,6 +7,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { MaterialForm } from '@/components/admin/material-form';
+import { Filters, FilterConfig } from '@/components/admin/filters';
 import { 
   Plus, 
   Package, 
@@ -23,9 +24,14 @@ import { ptBR } from 'date-fns/locale';
 
 const AdminMaterials = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({
+    search: '',
+    color: 'all'
+  });
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     materials: Material[];
@@ -34,6 +40,31 @@ const AdminMaterials = () => {
   useEffect(() => {
     loadMaterials();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [materials, filters]);
+
+  const applyFilters = () => {
+    let filtered = [...materials];
+
+    // Search filter
+    if (filters.search) {
+      filtered = filtered.filter(material =>
+        material.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        material.description?.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Color filter
+    if (filters.color !== 'all') {
+      filtered = filtered.filter(material =>
+        material.color?.toLowerCase() === filters.color.toLowerCase()
+      );
+    }
+
+    setFilteredMaterials(filtered);
+  };
 
   const loadMaterials = async () => {
     try {
@@ -98,6 +129,41 @@ const AdminMaterials = () => {
     loadMaterials();
     setShowForm(false);
     setEditingMaterial(null);
+  };
+
+  // Get unique colors from materials for filter
+  const uniqueColors = [...new Set(materials
+    .filter(material => material.color)
+    .map(material => material.color!)
+  )].sort();
+
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'search',
+      label: 'Buscar',
+      type: 'search',
+      placeholder: 'Buscar por nome ou descrição...'
+    },
+    {
+      key: 'color',
+      label: 'Cor',
+      type: 'select',
+      options: uniqueColors.map(color => ({
+        value: color,
+        label: color
+      }))
+    }
+  ];
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      color: 'all'
+    });
   };
 
   const getColorBadge = (color: string | null) => {
@@ -213,6 +279,14 @@ const AdminMaterials = () => {
           </Card>
         </div>
 
+        {/* Filters */}
+        <Filters
+          configs={filterConfigs}
+          values={filters}
+          onChange={handleFilterChange}
+          onClear={handleClearFilters}
+        />
+
         {/* Materials Table */}
         <Card>
           <CardHeader>
@@ -220,14 +294,14 @@ const AdminMaterials = () => {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={materials}
+              data={filteredMaterials}
               columns={columns}
               loading={loading}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onBulkDelete={handleBulkDelete}
               getItemId={(material) => material.id}
-              emptyMessage="Nenhum material cadastrado"
+              emptyMessage="Nenhum material encontrado"
             />
           </CardContent>
         </Card>

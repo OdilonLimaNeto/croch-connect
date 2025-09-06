@@ -7,6 +7,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ProductForm } from '@/components/admin/product-form';
+import { Filters, FilterConfig } from '@/components/admin/filters';
 import { 
   Plus, 
   Package, 
@@ -25,9 +26,15 @@ import { ptBR } from 'date-fns/locale';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({
+    search: '',
+    status: 'all',
+    stock: 'all'
+  });
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     products: Product[];
@@ -36,6 +43,38 @@ const AdminProducts = () => {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [products, filters]);
+
+  const applyFilters = () => {
+    let filtered = [...products];
+
+    // Search filter
+    if (filters.search) {
+      filtered = filtered.filter(product =>
+        product.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        product.description?.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(product =>
+        filters.status === 'active' ? product.is_active : !product.is_active
+      );
+    }
+
+    // Stock filter
+    if (filters.stock !== 'all') {
+      filtered = filtered.filter(product =>
+        filters.stock === 'in_stock' ? product.stock_quantity > 0 : product.stock_quantity === 0
+      );
+    }
+
+    setFilteredProducts(filtered);
+  };
 
   const loadProducts = async () => {
     try {
@@ -97,6 +136,45 @@ const AdminProducts = () => {
     loadProducts();
     setShowForm(false);
     setEditingProduct(null);
+  };
+
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'search',
+      label: 'Buscar',
+      type: 'search',
+      placeholder: 'Buscar por nome ou descrição...'
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'active', label: 'Ativo' },
+        { value: 'inactive', label: 'Inativo' }
+      ]
+    },
+    {
+      key: 'stock',
+      label: 'Estoque',
+      type: 'select',
+      options: [
+        { value: 'in_stock', label: 'Com Estoque' },
+        { value: 'out_of_stock', label: 'Sem Estoque' }
+      ]
+    }
+  ];
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      status: 'all',
+      stock: 'all'
+    });
   };
 
   const handleToggleStatus = async (product: Product) => {
@@ -279,6 +357,14 @@ const AdminProducts = () => {
           </Card>
         </div>
 
+        {/* Filters */}
+        <Filters
+          configs={filterConfigs}
+          values={filters}
+          onChange={handleFilterChange}
+          onClear={handleClearFilters}
+        />
+
         {/* Products Table */}
         <Card>
           <CardHeader>
@@ -286,14 +372,14 @@ const AdminProducts = () => {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={products}
+              data={filteredProducts}
               columns={columns}
               loading={loading}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onBulkDelete={handleBulkDelete}
               getItemId={(product) => product.id}
-              emptyMessage="Nenhum produto cadastrado"
+              emptyMessage="Nenhum produto encontrado"
             />
           </CardContent>
         </Card>
