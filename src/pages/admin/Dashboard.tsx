@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -31,6 +32,7 @@ interface DashboardStats {
 }
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -283,19 +285,28 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-lg border border-dashed border-primary/30 text-center hover:bg-primary/5 transition-colors cursor-pointer">
+              <div 
+                className="p-4 rounded-lg border border-dashed border-primary/30 text-center hover:bg-primary/5 transition-colors cursor-pointer"
+                onClick={() => navigate('/admin/produtos')}
+              >
                 <Package className="w-8 h-8 text-primary mx-auto mb-2" />
                 <h3 className="font-medium text-foreground">Novo Produto</h3>
                 <p className="text-sm text-muted-foreground">Adicionar produto ao catálogo</p>
               </div>
               
-              <div className="p-4 rounded-lg border border-dashed border-accent/30 text-center hover:bg-accent/5 transition-colors cursor-pointer">
+              <div 
+                className="p-4 rounded-lg border border-dashed border-accent/30 text-center hover:bg-accent/5 transition-colors cursor-pointer"
+                onClick={() => navigate('/admin/promocoes')}
+              >
                 <Tag className="w-8 h-8 text-accent mx-auto mb-2" />
                 <h3 className="font-medium text-foreground">Nova Promoção</h3>
                 <p className="text-sm text-muted-foreground">Criar oferta especial</p>
               </div>
               
-              <div className="p-4 rounded-lg border border-dashed border-success/30 text-center hover:bg-success/5 transition-colors cursor-pointer">
+              <div 
+                className="p-4 rounded-lg border border-dashed border-success/30 text-center hover:bg-success/5 transition-colors cursor-pointer"
+                onClick={() => window.open('/', '_blank')}
+              >
                 <Eye className="w-8 h-8 text-success mx-auto mb-2" />
                 <h3 className="font-medium text-foreground">Ver Site</h3>
                 <p className="text-sm text-muted-foreground">Visualizar loja online</p>
