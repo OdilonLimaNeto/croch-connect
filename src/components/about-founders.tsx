@@ -70,7 +70,7 @@ const AboutFounders = () => {
                             variant="outline" 
                             className="text-xs border-primary/30 text-primary hover:bg-primary/10"
                           >
-                            <Star className="w-3 h-3 mr-1" />
+                            <Star className="w-3 h-3 mr-1"/>
                             {skill}
                           </Badge>
                         ))}
