@@ -49,19 +49,14 @@ const menuItems = [
     icon: Palette,
   },
   {
-    title: 'Fundadoras',
-    url: '/admin/fundadoras',
+    title: 'Sobre a Empresa',
+    url: '/admin/empresa',
     icon: User,
   },
   {
     title: 'Usuários',
     url: '/admin/usuarios',
     icon: Users,
-  },
-  {
-    title: 'Configurações',
-    url: '/admin/configuracoes',
-    icon: Settings,
   },
 ];
 
