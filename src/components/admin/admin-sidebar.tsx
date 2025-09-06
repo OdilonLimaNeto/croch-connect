@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { SiteSettingsService } from '@/services/siteSettingsService';
+import { SiteSettings } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
@@ -64,8 +66,29 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
+
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      const settings = await SiteSettingsService.getSiteSettings();
+      setSiteSettings(settings);
+    };
+
+    fetchSiteSettings();
+
+    // Listen for site settings updates
+    const handleSiteSettingsUpdate = () => {
+      fetchSiteSettings();
+    };
+
+    window.addEventListener('siteSettingsUpdated', handleSiteSettingsUpdate);
+
+    return () => {
+      window.removeEventListener('siteSettingsUpdated', handleSiteSettingsUpdate);
+    };
+  }, []);
 
   const isActive = (path: string) => currentPath === path;
   const isExpanded = menuItems.some((item) => isActive(item.url));
@@ -87,13 +110,21 @@ export function AdminSidebar() {
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <ShoppingBag className="w-5 h-5 text-primary-foreground" />
-          </div>
+          {siteSettings?.logo_url ? (
+            <img 
+              src={siteSettings.logo_url} 
+              alt="Logo" 
+              className="w-8 h-8 rounded-lg object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+              <ShoppingBag className="w-5 h-5 text-primary-foreground" />
+            </div>
+          )}
           {!isCollapsed && (
             <div>
               <h2 className="text-sm font-semibold text-sidebar-foreground">
-                Nó de Duas
+                {siteSettings?.site_name || 'Nó de Duas'}
               </h2>
               <p className="text-xs text-sidebar-foreground/60">
                 Admin Panel
