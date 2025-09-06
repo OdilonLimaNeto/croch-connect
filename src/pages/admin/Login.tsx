@@ -78,9 +78,10 @@ const AdminLogin = () => {
 
       if (loggedUser?.profile?.role === 'admin') {
         toast.success('Login realizado com sucesso!');
-        navigate('/admin/dashboard', { replace: true });
+        // Remove o redirecionamento manual - deixa o useEffect gerenciar
       } else if (loggedUser) {
         toast.error('Acesso negado. Apenas administradores podem acessar este painel.');
+        await AuthService.signOut(); // Faz logout se não for admin
       }
     } catch (error) {
       setError('Erro inesperado. Tente novamente.');
