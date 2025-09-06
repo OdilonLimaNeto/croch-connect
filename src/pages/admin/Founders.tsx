@@ -202,8 +202,8 @@ export default function Founders() {
               Gerencie as informações das fundadoras
             </p>
           </div>
-          <Button onClick={startCreate}>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button className="gap-2" onClick={startCreate}>
+            <Plus className="w-4 h-4" />
             Nova Fundadora
           </Button>
         </div>
@@ -224,8 +224,8 @@ export default function Founders() {
                   <p className="text-muted-foreground mb-4">
                     Adicione informações sobre as fundadoras do empreendimento
                   </p>
-                  <Button onClick={startCreate}>
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button className="gap-2" onClick={startCreate}>
+                    <Plus className="w-4 h-4" />
                     Adicionar Primeira Fundadora
                   </Button>
                 </CardContent>
@@ -283,21 +283,23 @@ export default function Founders() {
                           <Button
                             size="sm"
                             variant="outline"
+                            className="gap-1"
                             onClick={() => startEdit(founder)}
                           >
-                            <Edit className="w-4 h-4 mr-1" />
+                            <Edit className="w-4 h-4" />
                             Editar
                           </Button>
                           
                           <Button
                             size="sm"
                             variant="outline"
+                            className="gap-1"
                             onClick={() => handleToggleStatus(founder.id, founder.is_active)}
                           >
                             {founder.is_active ? (
-                              <EyeOff className="w-4 h-4 mr-1" />
+                              <EyeOff className="w-4 h-4" />
                             ) : (
-                              <Eye className="w-4 h-4 mr-1" />
+                              <Eye className="w-4 h-4" />
                             )}
                             {founder.is_active ? 'Desativar' : 'Ativar'}
                           </Button>
@@ -305,9 +307,10 @@ export default function Founders() {
                           <Button
                             size="sm"
                             variant="outline"
+                            className="gap-1"
                             onClick={() => handleDeleteFounder(founder.id)}
                           >
-                            <Trash2 className="w-4 h-4 mr-1" />
+                            <Trash2 className="w-4 h-4" />
                             Excluir
                           </Button>
                         </div>
