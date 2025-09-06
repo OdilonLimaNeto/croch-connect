@@ -128,17 +128,6 @@ export class AuthService {
         return { success: false, error: profileError.message };
       }
 
-      // If email is being updated, update auth.users as well
-      if (updates.email) {
-        const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
-          email: updates.email,
-        });
-
-        if (authError) {
-          return { success: false, error: authError.message };
-        }
-      }
-
       return { success: true };
     } catch (error) {
       return { success: false, error: "Erro inesperado ao atualizar usuário" };
@@ -147,8 +136,12 @@ export class AuthService {
 
   static async deleteUser(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Delete from auth.users (this will cascade to profiles due to foreign key)
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // Delete the profile - this is what we can do from client side
+      // The actual auth.users deletion should be handled by admin or edge functions
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
 
       if (error) {
         return { success: false, error: error.message };
