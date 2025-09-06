@@ -162,7 +162,5 @@ export interface SiteSettings {
 
 export interface SiteSettingsFormData {
   site_name: string;
-  primary_color: string;
   logo?: File;
-  favicon?: File;
 }

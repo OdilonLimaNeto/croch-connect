@@ -206,6 +206,8 @@ export default function Company() {
           title: 'Sucesso',
           description: 'Configurações atualizadas com sucesso',
         });
+        // Trigger event to update header
+        window.dispatchEvent(new CustomEvent('siteSettingsUpdated'));
         loadData();
       } else {
         toast({

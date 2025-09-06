@@ -21,27 +21,23 @@ export const SiteSettingsForm: React.FC<SiteSettingsFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<SiteSettingsFormData>({
     site_name: 'Nó de Duas',
-    primary_color: '#000000',
   });
   
   const [logoImages, setLogoImages] = useState<File[]>([]);
-  const [faviconImages, setFaviconImages] = useState<File[]>([]);
 
   useEffect(() => {
     if (settings) {
       setFormData({
         site_name: settings.site_name,
-        primary_color: settings.primary_color,
       });
     }
   }, [settings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit({
-      ...formData,
-      logo: logoImages[0],
-      favicon: faviconImages[0],
+    await onSubmit({ 
+      ...formData, 
+      logo: logoImages[0] 
     });
   };
 
@@ -63,26 +59,6 @@ export const SiteSettingsForm: React.FC<SiteSettingsFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="primary_color">Cor Principal</Label>
-            <div className="flex gap-2">
-              <Input
-                id="primary_color"
-                type="color"
-                value={formData.primary_color}
-                onChange={(e) => setFormData(prev => ({ ...prev, primary_color: e.target.value }))}
-                className="w-20 h-10"
-              />
-              <Input
-                type="text"
-                value={formData.primary_color}
-                onChange={(e) => setFormData(prev => ({ ...prev, primary_color: e.target.value }))}
-                placeholder="#000000"
-                className="flex-1"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
             <Label>Logo do Site</Label>
             <ImageUpload
               images={logoImages}
@@ -93,31 +69,7 @@ export const SiteSettingsForm: React.FC<SiteSettingsFormProps> = ({
             {settings?.logo_url && logoImages.length === 0 && (
               <div className="mt-2">
                 <p className="text-sm text-muted-foreground mb-2">Logo atual:</p>
-                <img
-                  src={settings.logo_url}
-                  alt="Logo atual"
-                  className="h-12 object-contain"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Favicon</Label>
-            <ImageUpload
-              images={faviconImages}
-              onImagesChange={setFaviconImages}
-              maxImages={1}
-              maxSize={2}
-            />
-            {settings?.favicon_url && faviconImages.length === 0 && (
-              <div className="mt-2">
-                <p className="text-sm text-muted-foreground mb-2">Favicon atual:</p>
-                <img
-                  src={settings.favicon_url}
-                  alt="Favicon atual"
-                  className="w-8 h-8 object-contain"
-                />
+                <img src={settings.logo_url} alt="Logo atual" className="h-12 object-contain" />
               </div>
             )}
           </div>

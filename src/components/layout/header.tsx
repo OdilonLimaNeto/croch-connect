@@ -19,6 +19,17 @@ const Header = () => {
       setSiteSettings(settings);
     };
     loadSiteSettings();
+    
+    // Listen for storage events or custom events when settings change
+    const handleSettingsUpdate = () => {
+      loadSiteSettings();
+    };
+    
+    window.addEventListener('siteSettingsUpdated', handleSettingsUpdate);
+    
+    return () => {
+      window.removeEventListener('siteSettingsUpdated', handleSettingsUpdate);
+    };
   }, []);
 
   return (
