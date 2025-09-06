@@ -34,6 +34,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { Product, Material } from '@/types';
 import { ProductService, MaterialService } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
 
@@ -140,9 +141,39 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     form.setValue('materials', currentMaterials.filter(m => m !== materialToRemove));
   };
 
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+    
+    for (const file of files) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        continue;
+      }
+
+      const { data } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      uploadedUrls.push(data.publicUrl);
+    }
+
+    return uploadedUrls;
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     try {
       setLoading(true);
+      
+      // Upload images first
+      const imageUrls = await uploadImages(images);
       
       // Prepare the product data
       const productData = {
@@ -153,7 +184,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         stock_quantity: data.stock_quantity,
         materials: data.materials || [],
         is_active: data.is_active,
-        images: [] as string[] // For now, we'll store empty array for images
+        images: imageUrls
       };
 
       if (isEdit && product) {
@@ -171,7 +202,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         // Create new product
         const result = await ProductService.createProduct({
           ...productData,
-          images: [] // Images will be handled separately in future
+          images: imageUrls
         } as any);
         
         if (result.success) {

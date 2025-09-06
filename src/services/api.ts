@@ -63,7 +63,16 @@ export class ProductService {
     }
   }
 
-  static async createProduct(productData: ProductFormData): Promise<{ success: boolean; error?: string; data?: Product }> {
+  static async createProduct(productData: {
+    title: string;
+    description: string | null;
+    price: number;
+    promotional_price?: number | null;
+    stock_quantity: number;
+    materials: string[];
+    is_active: boolean;
+    images: string[];
+  }): Promise<{ success: boolean; error?: string; data?: Product }> {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -74,7 +83,8 @@ export class ProductService {
           promotional_price: productData.promotional_price || null,
           stock_quantity: productData.stock_quantity,
           materials: productData.materials,
-          images: [], // Images would be uploaded separately
+          images: productData.images,
+          is_active: productData.is_active,
         })
         .select()
         .single();
