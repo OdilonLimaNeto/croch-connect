@@ -10,12 +10,39 @@ export class ProductService {
         query = query.eq('is_active', true);
       }
       
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data: products, error } = await query.order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Get active promotions to check which products are in promotion
+      const activePromotions = await this.getActivePromotions();
+      const promotionProductIds = new Set(activePromotions.map(p => p.product_id));
+      
+      // Add promotion status to products
+      return (products || []).map(product => ({
+        ...product,
+        hasActivePromotion: promotionProductIds.has(product.id)
+      }));
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return [];
+    }
+  }
+
+  static async getActivePromotions(): Promise<any[]> {
+    try {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('promotions')
+        .select('*')
+        .eq('is_active', true)
+        .lte('start_date', now)
+        .gte('end_date', now);
 
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching active promotions:', error);
       return [];
     }
   }

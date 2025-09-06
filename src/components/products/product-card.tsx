@@ -18,7 +18,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onViewDetails,
   className 
 }) => {
-  const hasPromotion = product.promotional_price && product.promotional_price < product.price;
+  const hasPromotion = product.hasActivePromotion && product.promotional_price && product.promotional_price < product.price;
   const displayPrice = hasPromotion ? product.promotional_price : product.price;
   const originalPrice = hasPromotion ? product.price : null;
   
