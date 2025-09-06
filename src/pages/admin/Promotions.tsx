@@ -160,7 +160,10 @@ const AdminPromotions = () => {
                   R$ {item.product.price.toFixed(2)}
                 </span>
                 <span className="text-success font-semibold">
-                  R$ {(item.product.price * (1 - value / 100)).toFixed(2)}
+                  R$ {(() => {
+                    const discountedPrice = Number(item.product.price) * (1 - Number(value) / 100);
+                    return isNaN(discountedPrice) ? '0.00' : discountedPrice.toFixed(2);
+                  })()}
                 </span>
               </div>
             </div>
