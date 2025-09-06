@@ -38,8 +38,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Package } from 'lucide-react';
+import { CalendarIcon, Package, GripVertical, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const promotionSchema = z.object({
   product_id: z.string().min(1, 'Produto é obrigatório'),
@@ -60,6 +78,71 @@ const promotionSchema = z.object({
 
 type PromotionFormDataLocal = z.infer<typeof promotionSchema>;
 
+interface ImageItem {
+  id: string;
+  url: string;
+  isNew: boolean;
+}
+
+interface SortableImageProps {
+  image: ImageItem;
+  onRemove: (id: string) => void;
+  disabled: boolean;
+}
+
+const SortableImage: React.FC<SortableImageProps> = ({ image, onRemove, disabled }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: image.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group bg-muted rounded-lg overflow-hidden"
+    >
+      <img
+        src={image.url}
+        alt={`Produto`}
+        className="w-full h-20 object-cover"
+      />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors">
+        <button
+          type="button"
+          onClick={() => onRemove(image.id)}
+          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+          disabled={disabled}
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute top-1 left-1 bg-background/80 text-foreground rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="w-3 h-3" />
+        </div>
+      </div>
+      {image.isNew && (
+        <div className="absolute bottom-1 left-1 bg-primary text-primary-foreground rounded px-1 text-xs">
+          Nova
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MAX_IMAGES = 5;
+
 interface PromotionFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -76,8 +159,15 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [images, setImages] = useState<File[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
   const isEdit = !!promotion;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const form = useForm<PromotionFormDataLocal>({
     resolver: zodResolver(promotionSchema),
@@ -108,7 +198,12 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
       // Load existing images for the selected product
       const selectedProduct = products.find(p => p.id === promotion.product_id);
       if (selectedProduct) {
-        setExistingImages(selectedProduct.images || []);
+        const imageItems = (selectedProduct.images || []).map((url, index) => ({
+          id: `existing-${index}`,
+          url,
+          isNew: false
+        }));
+        setImageItems(imageItems);
       }
     } else {
       form.reset({
@@ -118,7 +213,7 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
         end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         is_active: true,
       });
-      setExistingImages([]);
+      setImageItems([]);
       setImages([]);
     }
   }, [promotion, form, products]);
@@ -128,9 +223,14 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
     const productId = form.watch('product_id');
     const selectedProduct = products.find(p => p.id === productId);
     if (selectedProduct) {
-      setExistingImages(selectedProduct.images || []);
+      const imageItems = (selectedProduct.images || []).map((url, index) => ({
+        id: `existing-${index}`,
+        url,
+        isNew: false
+      }));
+      setImageItems(imageItems);
     } else {
-      setExistingImages([]);
+      setImageItems([]);
     }
     setImages([]); // Reset new images when product changes
   }, [form.watch('product_id'), products]);
@@ -188,6 +288,59 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
     }
   };
 
+  const handleImagesChange = (newFiles: File[]) => {
+    const currentImageCount = imageItems.length;
+    const availableSlots = MAX_IMAGES - currentImageCount;
+    
+    if (newFiles.length > availableSlots) {
+      toast.error(`Você pode adicionar no máximo ${availableSlots} imagem(ns). Limite total: ${MAX_IMAGES} imagens por produto.`);
+      return;
+    }
+    
+    setImages(newFiles);
+    
+    // Add new images to the preview
+    const newImageItems = newFiles.map((file, index) => ({
+      id: `new-${Date.now()}-${index}`,
+      url: URL.createObjectURL(file),
+      isNew: true
+    }));
+    
+    setImageItems(prev => [...prev, ...newImageItems]);
+  };
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setImageItems((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleRemoveImage = async (imageId: string) => {
+    const imageItem = imageItems.find(item => item.id === imageId);
+    if (!imageItem) return;
+
+    if (imageItem.isNew) {
+      // Remove from new images
+      const imageIndex = parseInt(imageId.split('-')[2]);
+      setImages(prev => prev.filter((_, index) => index !== imageIndex));
+      
+      // Revoke object URL to prevent memory leaks
+      URL.revokeObjectURL(imageItem.url);
+    } else {
+      // Delete existing image from storage
+      await deleteImage(imageItem.url);
+    }
+
+    setImageItems(prev => prev.filter(item => item.id !== imageId));
+  };
+
   const onSubmit = async (data: PromotionFormDataLocal) => {
     try {
       setLoading(true);
@@ -195,8 +348,15 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
       // Upload new images if any
       const newImageUrls = images.length > 0 ? await uploadImages(images) : [];
       
-      // Combine existing and new images
-      const allImages = [...existingImages, ...newImageUrls];
+      // Get final image order (existing + new images)
+      const existingImages = imageItems.filter(item => !item.isNew).map(item => item.url);
+      const allImages = imageItems.map(item => {
+        if (item.isNew) {
+          const imageIndex = parseInt(item.id.split('-')[2]);
+          return newImageUrls[imageIndex];
+        }
+        return item.url;
+      }).filter(Boolean);
       
       // Update product images if there are changes
       if (images.length > 0 || existingImages.length !== (selectedProduct?.images?.length || 0)) {
@@ -235,13 +395,12 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
   const handleClose = () => {
     form.reset();
     setImages([]);
-    setExistingImages([]);
+    setImageItems([]);
+    // Clean up object URLs
+    imageItems.filter(item => item.isNew).forEach(item => {
+      URL.revokeObjectURL(item.url);
+    });
     onOpenChange(false);
-  };
-
-  const handleRemoveExistingImage = async (imageUrl: string) => {
-    setExistingImages(prev => prev.filter(img => img !== imageUrl));
-    await deleteImage(imageUrl);
   };
 
   const selectedProduct = products.find(p => p.id === form.watch('product_id'));
@@ -422,44 +581,61 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
             {form.watch('product_id') && (
               <div className="space-y-4">
                 <FormLabel>Imagens do Produto</FormLabel>
+                <div className="text-sm text-muted-foreground">
+                  Máximo de {MAX_IMAGES} imagens. Arraste para reordenar.
+                </div>
                 
-                {/* Existing Images */}
-                {existingImages.length > 0 && (
+                {/* Current Images with Drag & Drop */}
+                {imageItems.length > 0 && (
                   <div className="space-y-2">
-                    <div className="text-sm font-medium">Imagens atuais:</div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {existingImages.map((imageUrl, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={imageUrl}
-                            alt={`Produto ${index + 1}`}
-                            className="w-full h-20 object-cover rounded border"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveExistingImage(imageUrl)}
-                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                            disabled={loading}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                    <div className="text-sm font-medium">
+                      Imagens atuais ({imageItems.length}/{MAX_IMAGES}):
                     </div>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={imageItems.map(item => item.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="grid grid-cols-5 gap-2">
+                          {imageItems.map((imageItem) => (
+                            <SortableImage
+                              key={imageItem.id}
+                              image={imageItem}
+                              onRemove={handleRemoveImage}
+                              disabled={loading}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 )}
 
-                {/* New Images Upload */}
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Adicionar novas imagens:</div>
-                  <ImageUpload
-                    images={images}
-                    onImagesChange={setImages}
-                    maxImages={10}
-                    maxSize={5}
-                    disabled={loading}
-                  />
-                </div>
+                {/* Add New Images */}
+                {imageItems.length < MAX_IMAGES && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">
+                      Adicionar novas imagens ({MAX_IMAGES - imageItems.length} disponível(is)):
+                    </div>
+                    <ImageUpload
+                      images={images}
+                      onImagesChange={handleImagesChange}
+                      maxImages={MAX_IMAGES - imageItems.length}
+                      maxSize={5}
+                      disabled={loading}
+                    />
+                  </div>
+                )}
+
+                {imageItems.length >= MAX_IMAGES && (
+                  <div className="bg-muted/50 border border-dashed rounded-lg p-4 text-center text-sm text-muted-foreground">
+                    Limite máximo de {MAX_IMAGES} imagens atingido. Remova uma imagem para adicionar outra.
+                  </div>
+                )}
               </div>
             )}
 
