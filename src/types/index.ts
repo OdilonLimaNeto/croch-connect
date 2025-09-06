@@ -164,3 +164,119 @@ export interface SiteSettingsFormData {
   site_name: string;
   logo?: File;
 }
+
+// Sales and Analytics types
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  category: 'materials' | 'equipment' | 'other';
+  date: string;
+  supplier?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Sale {
+  id: string;
+  customer_name: string;
+  customer_email?: string;
+  customer_phone?: string;
+  total_amount: number;
+  payment_method: 'cash' | 'credit_card' | 'debit_card' | 'pix' | 'bank_transfer' | 'installments';
+  payment_status: 'pending' | 'paid' | 'partial' | 'cancelled';
+  installments_count: number;
+  sale_date: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  installments?: Installment[];
+  sale_items?: SaleItem[];
+}
+
+export interface Installment {
+  id: string;
+  sale_id: string;
+  installment_number: number;
+  amount: number;
+  due_date: string;
+  paid_date?: string;
+  status: 'pending' | 'paid' | 'overdue';
+  payment_method?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SaleItem {
+  id: string;
+  sale_id: string;
+  product_id?: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  created_at: string;
+}
+
+// Form data types  
+export interface ExpenseFormData {
+  description: string;
+  amount: number;
+  category: 'materials' | 'equipment' | 'other';
+  date: Date;
+  supplier?: string;
+  notes?: string;
+}
+
+export interface SaleFormData {
+  customer_name: string;
+  customer_email?: string;
+  customer_phone?: string;
+  total_amount: number;
+  payment_method: 'cash' | 'credit_card' | 'debit_card' | 'pix' | 'bank_transfer' | 'installments';
+  payment_status: 'pending' | 'paid' | 'partial' | 'cancelled';
+  installments_count: number;
+  sale_date: Date;
+  notes?: string;
+  items: SaleItemFormData[];
+}
+
+export interface SaleItemFormData {
+  product_id?: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+}
+
+// Analytics types
+export interface AnalyticsData {
+  totalSales: number;
+  totalExpenses: number;
+  profit: number;
+  salesCount: number;
+  pendingInstallments: number;
+  overdue: number;
+  monthlyData: MonthlyData[];
+  categoryExpenses: CategoryExpense[];
+  paymentMethods: PaymentMethodData[];
+}
+
+export interface MonthlyData {
+  month: string;
+  sales: number;
+  expenses: number;
+  profit: number;
+}
+
+export interface CategoryExpense {
+  category: string;
+  amount: number;
+}
+
+export interface PaymentMethodData {
+  method: string;
+  count: number;
+  amount: number;
+}

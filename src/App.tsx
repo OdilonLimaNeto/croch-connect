@@ -11,6 +11,8 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import AdminLogin from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
+import Analytics from "./pages/admin/Analytics";
+import Sales from "./pages/admin/Sales";
 import AdminProducts from "./pages/admin/Products";
 import AdminPromotions from "./pages/admin/Promotions";
 import AdminMaterials from "./pages/admin/Materials";
@@ -44,6 +46,16 @@ const App = () => (
             <Route path="/admin/dashboard" element={
               <ProtectedRoute requireAdmin>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute requireAdmin>
+                <Analytics />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/vendas" element={
+              <ProtectedRoute requireAdmin>
+                <Sales />
               </ProtectedRoute>
             } />
             <Route path="/admin/produtos" element={

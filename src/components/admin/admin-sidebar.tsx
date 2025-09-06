@@ -26,7 +26,9 @@ import {
   User,
   Home,
   Users,
-  Settings
+  Settings,
+  TrendingUp,
+  ShoppingCart
 } from 'lucide-react';
 
 const menuItems = [
@@ -34,6 +36,16 @@ const menuItems = [
     title: 'Dashboard',
     url: '/admin/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    title: 'Analytics',
+    url: '/admin/analytics',
+    icon: TrendingUp,
+  },
+  {
+    title: 'Vendas',
+    url: '/admin/vendas',
+    icon: ShoppingCart,
   },
   {
     title: 'Produtos',
