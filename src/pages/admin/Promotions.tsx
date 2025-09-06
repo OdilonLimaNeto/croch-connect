@@ -155,17 +155,21 @@ const AdminPromotions = () => {
             </div>
             <div>
               <p className="font-medium text-foreground">{item.product.title}</p>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground line-through">
-                  R$ {item.product.price.toFixed(2)}
-                </span>
-                <span className="text-success font-semibold">
-                  R$ {(() => {
-                    const discountedPrice = Number(item.product.price) * (1 - Number(value) / 100);
-                    return isNaN(discountedPrice) ? '0.00' : discountedPrice.toFixed(2);
-                  })()}
-                </span>
-              </div>
+              {(() => {
+                const discountedPrice = Number(item.product.price) * (1 - Number(value) / 100);
+                const finalDiscountedValue = isNaN(discountedPrice) ? 0 : discountedPrice;
+                
+                return (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground line-through">
+                      R$ {item.product.price.toFixed(2)}
+                    </span>
+                    <span className="text-success font-semibold" data-discounted-value={finalDiscountedValue}>
+                      R$ {finalDiscountedValue.toFixed(2)}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         ) : (
