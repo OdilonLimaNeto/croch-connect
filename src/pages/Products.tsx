@@ -191,7 +191,7 @@ const Products = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 flex-1">
                 <SortAsc className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <Select onValueChange={handleSortChange} value={filters.sort_by || ''}>
+                <Select onValueChange={handleSortChange} value={filters.sort_by || 'created_desc'}>
                   <SelectTrigger className="w-full sm:w-auto">
                     <SelectValue placeholder="Ordenar por" />
                   </SelectTrigger>

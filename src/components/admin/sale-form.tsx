@@ -220,14 +220,14 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                   <div className="space-y-2">
                     <Label>Produto</Label>
                     <Select
-                      value={item.product_id || ''}
-                      onValueChange={(value) => handleItemChange(index, 'product_id', value || undefined)}
+                      value={item.product_id || 'custom'}
+                      onValueChange={(value) => handleItemChange(index, 'product_id', value === 'custom' ? undefined : value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar produto" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Produto personalizado</SelectItem>
+                        <SelectItem value="custom">Produto personalizado</SelectItem>
                         {products.map(product => (
                           <SelectItem key={product.id} value={product.id}>
                             {product.title}
