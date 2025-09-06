@@ -8,15 +8,19 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  CarouselApi,
 } from '@/components/ui/carousel';
 import { MessageCircle, Percent, ArrowRight } from 'lucide-react';
 import { Promotion, Product } from '@/types';
 import { PromotionService, WhatsAppService } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
+import Autoplay from 'embla-carousel-autoplay';
 
 const HeroCarousel = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,6 +37,16 @@ const HeroCarousel = () => {
 
     loadActivePromotions();
   }, []);
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
 
   const handleProductClick = (product: Product) => {
     navigate(`/produto/${product.id}`);
@@ -76,11 +90,23 @@ const HeroCarousel = () => {
         </div>
 
         {/* Estratégia de centralização baseada na quantidade de promoções */}
-        <Carousel className={`mx-auto ${
-          promotions.length === 1 ? 'max-w-md' : 
-          promotions.length === 2 ? 'max-w-3xl' : 
-          'max-w-5xl'
-        }`}>
+        <Carousel 
+          setApi={setApi}
+          className={`mx-auto ${
+            promotions.length === 1 ? 'max-w-md' : 
+            promotions.length === 2 ? 'max-w-3xl' : 
+            'max-w-5xl'
+          }`}
+          plugins={promotions.length > 1 ? [
+            Autoplay({
+              delay: 4000,
+            }),
+          ] : []}
+          opts={{
+            align: "start",
+            loop: promotions.length > 2,
+          }}
+        >
           <CarouselContent className={
             promotions.length === 1 ? "flex justify-center" : ""
           }>
@@ -100,7 +126,10 @@ const HeroCarousel = () => {
 
               return (
                 <CarouselItem key={promotion.id} className={getBasisClass()}>
-                  <Card className="group hover:shadow-elegant transition-all duration-300 h-full">
+                  <Card 
+                    className="group hover:shadow-elegant transition-all duration-300 h-full cursor-pointer"
+                    onClick={() => handleProductClick(product)}
+                  >
                     <div className="relative">
                       <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
                         {product.images && product.images.length > 0 ? (
@@ -143,7 +172,10 @@ const HeroCarousel = () => {
 
                         <div className="flex flex-col gap-2">
                           <Button
-                            onClick={() => handleProductClick(product)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProductClick(product);
+                            }}
                             variant="outline"
                             size="sm"
                             className="w-full gap-2"
@@ -153,7 +185,10 @@ const HeroCarousel = () => {
                           </Button>
                           
                           <Button
-                            onClick={() => handleWhatsApp(product)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWhatsApp(product);
+                            }}
                             size="sm"
                             className="w-full gap-2 bg-success hover:bg-success/90 text-white"
                             disabled={product.stock_quantity === 0}
@@ -173,11 +208,29 @@ const HeroCarousel = () => {
           {/* Mostrar controles apenas quando necessário */}
           {promotions.length > 1 && (
             <>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
+              <CarouselPrevious className="hidden md:flex hover:bg-primary/10" />
+              <CarouselNext className="hidden md:flex hover:bg-primary/10" />
             </>
           )}
         </Carousel>
+
+        {/* Indicadores de slide */}
+        {promotions.length > 1 && (
+          <div className="flex justify-center mt-6 space-x-2">
+            {promotions.map((_, index) => (
+              <button
+                key={index}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === current
+                    ? 'bg-primary w-6'
+                    : 'bg-primary/30 hover:bg-primary/50'
+                }`}
+                onClick={() => api?.scrollTo(index)}
+                aria-label={`Ir para slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
