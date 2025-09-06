@@ -14,9 +14,8 @@ import Dashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminPromotions from "./pages/admin/Promotions";
 import AdminMaterials from "./pages/admin/Materials";
-import AdminFounders from "./pages/admin/Founders";
 import AdminUsers from "./pages/admin/Users";
-import AdminSiteSettings from "./pages/admin/SiteSettings";
+import AdminCompany from "./pages/admin/Company";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,9 +61,9 @@ const App = () => (
                 <AdminMaterials />
               </ProtectedRoute>
             } />
-            <Route path="/admin/fundadoras" element={
+            <Route path="/admin/empresa" element={
               <ProtectedRoute requireAdmin>
-                <AdminFounders />
+                <AdminCompany />
               </ProtectedRoute>
             } />
             <Route path="/admin/usuarios" element={
@@ -72,11 +71,9 @@ const App = () => (
                 <AdminUsers />
               </ProtectedRoute>
             } />
-            <Route path="/admin/configuracoes" element={
-              <ProtectedRoute requireAdmin>
-                <AdminSiteSettings />
-              </ProtectedRoute>
-            } />
+            {/* Redirect old routes */}
+            <Route path="/admin/fundadoras" element={<Navigate to="/admin/empresa" replace />} />
+            <Route path="/admin/configuracoes" element={<Navigate to="/admin/empresa" replace />} />
             
             {/* 404 Not Found */}
             <Route path="*" element={<NotFound />} />
