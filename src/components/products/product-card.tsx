@@ -109,24 +109,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col sm:flex-row gap-3 pt-3">
           <Button
             onClick={handleViewDetails}
             variant="outline"
             size="sm"
-            className="flex-1 gap-2"
+            className="w-full sm:flex-1 gap-2 h-10 hover:bg-muted/50 border-muted-foreground/20 hover:border-primary/50 transition-all duration-200"
           >
             <Eye className="w-4 h-4" />
-            Ver Detalhes
+            <span className="font-medium">Ver Detalhes</span>
           </Button>
+          
           <Button
             onClick={handleWhatsApp}
             size="sm"
-            className="flex-1 gap-2 bg-success hover:bg-success/90 text-success-foreground"
+            className="w-full sm:flex-1 gap-2 h-10 bg-success hover:bg-success/90 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
             disabled={product.stock_quantity === 0}
           >
             <MessageCircle className="w-4 h-4" />
-            WhatsApp
+            <span>WhatsApp</span>
           </Button>
         </div>
       </CardContent>
