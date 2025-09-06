@@ -62,7 +62,7 @@ const AboutFounders = () => {
                     </p>
                     
                     <div>
-                      <h4 className="font-semibold text-foreground mb-3">Especialidades:</h4>
+                      <h4 className="font-semibold text-foreground mb-3"></h4>
                       <div className="flex flex-wrap gap-2">
                         {founder.expertise.map((skill, skillIndex) => (
                           <Badge 
