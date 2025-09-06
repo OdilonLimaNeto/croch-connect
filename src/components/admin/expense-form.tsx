@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ExpenseFormData } from '@/types';
+import { toast } from 'sonner';
+import { DataSanitizer, createSafeSchema } from '@/lib/sanitization';
+import { z } from 'zod';
 
 interface ExpenseFormProps {
   onSubmit: (data: ExpenseFormData) => Promise<void>;
@@ -27,6 +30,16 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     notes: '',
   });
 
+  // Enhanced validation schema with sanitization
+  const expenseSchema = z.object({
+    description: createSafeSchema.text(2, 200),
+    amount: z.number().min(0.01, 'Valor deve ser maior que zero'),
+    category: z.enum(['materials', 'equipment', 'other']),
+    date: z.date(),
+    supplier: createSafeSchema.text(0, 100).optional(),
+    notes: createSafeSchema.text(0, 500).optional()
+  });
+
   const handleInputChange = (field: keyof ExpenseFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -34,18 +47,38 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.description.trim()) {
-      alert('Descrição é obrigatória');
-      return;
-    }
-    
-    if (formData.amount <= 0) {
-      alert('Valor deve ser maior que zero');
-      return;
-    }
+    try {
+      // Sanitize form data
+      const sanitizedData = DataSanitizer.sanitizeFormData({
+        ...formData,
+        amount: Number(formData.amount)
+      });
+      
+      // Validate with enhanced schema
+      const validationResult = expenseSchema.safeParse(sanitizedData);
 
-    await onSubmit(formData);
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast.error(`Erro de validação: ${firstError.message}`);
+        return;
+      }
+
+      // Additional validation
+      if (!sanitizedData.description.trim()) {
+        toast.error('Descrição é obrigatória');
+        return;
+      }
+      
+      if (sanitizedData.amount <= 0) {
+        toast.error('Valor deve ser maior que zero');
+        return;
+      }
+
+      await onSubmit(sanitizedData);
+    } catch (error) {
+      console.error('Erro ao processar gasto:', error);
+      toast.error('Erro inesperado ao processar gasto');
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -68,9 +101,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             <Input
               id="description"
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={(e) => handleInputChange('description', DataSanitizer.sanitizeText(e.target.value))}
               placeholder="Descreva o gasto (ex: Lã para produtos, Agulhas de crochê)"
               required
+              maxLength={200}
             />
           </div>
           
@@ -129,8 +163,9 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
               <Input
                 id="supplier"
                 value={formData.supplier}
-                onChange={(e) => handleInputChange('supplier', e.target.value)}
+                onChange={(e) => handleInputChange('supplier', DataSanitizer.sanitizeText(e.target.value))}
                 placeholder="Nome do fornecedor ou loja"
+                maxLength={100}
               />
             </div>
           </div>
@@ -140,9 +175,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
+              onChange={(e) => handleInputChange('notes', DataSanitizer.sanitizeText(e.target.value))}
               placeholder="Observações adicionais sobre o gasto"
               rows={3}
+              maxLength={500}
             />
           </div>
         </CardContent>

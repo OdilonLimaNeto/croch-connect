@@ -1,12 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
 import { AuthUser, LoginFormData, SignUpFormData } from "@/types";
+import { DataSanitizer } from "./sanitization";
 
 export class AuthService {
   static async signIn(data: LoginFormData): Promise<{ user: AuthUser | null; error: string | null }> {
     try {
+      // Sanitize input data
+      const sanitizedData = DataSanitizer.sanitizeFormData(data);
+      
       const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
+        email: sanitizedData.email,
+        password: sanitizedData.password,
       });
 
       if (error) {
@@ -38,16 +42,18 @@ export class AuthService {
 
   static async signUp(data: SignUpFormData & { role?: 'admin' | 'user' }): Promise<{ user: AuthUser | null; error: string | null }> {
     try {
+      // Sanitize input data
+      const sanitizedData = DataSanitizer.sanitizeFormData(data);
       const redirectUrl = `${window.location.origin}/`;
       
       const { data: authData, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
+        email: sanitizedData.email,
+        password: sanitizedData.password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: data.full_name,
-            role: data.role || 'user',
+            full_name: sanitizedData.full_name,
+            role: sanitizedData.role || 'user',
           }
         }
       });
@@ -114,13 +120,16 @@ export class AuthService {
 
   static async updateUser(userId: string, updates: { full_name?: string; email?: string; role?: 'admin' | 'user' }): Promise<{ success: boolean; error?: string }> {
     try {
+      // Sanitize input data
+      const sanitizedUpdates = DataSanitizer.sanitizeFormData(updates);
+      
       // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          full_name: updates.full_name,
-          role: updates.role,
-          email: updates.email,
+          full_name: sanitizedUpdates.full_name,
+          role: sanitizedUpdates.role,
+          email: sanitizedUpdates.email,
         })
         .eq('user_id', userId);
 

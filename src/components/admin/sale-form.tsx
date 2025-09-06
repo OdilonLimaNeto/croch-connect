@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { SaleFormData, SaleItemFormData, Product } from '@/types';
 import { Plus, Trash2, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { DataSanitizer, createSafeSchema } from '@/lib/sanitization';
+import { z } from 'zod';
 
 interface SaleFormProps {
   onSubmit: (data: SaleFormData) => Promise<void>;
@@ -34,6 +37,23 @@ export const SaleForm: React.FC<SaleFormProps> = ({
     sale_date: new Date(),
     notes: '',
     items: []
+  });
+
+  // Enhanced validation schema with sanitization
+  const saleSchema = z.object({
+    customer_name: createSafeSchema.text(2, 100),
+    customer_email: createSafeSchema.email().optional(),
+    customer_phone: createSafeSchema.phone(),
+    payment_method: z.enum(['cash', 'credit_card', 'debit_card', 'pix', 'bank_transfer', 'installments']),
+    payment_status: z.enum(['pending', 'paid', 'partial']),
+    installments_count: z.number().min(1).max(24),
+    sale_date: z.date(),
+    notes: createSafeSchema.text(0, 500).optional(),
+    items: z.array(z.object({
+      product_name: createSafeSchema.text(1, 100),
+      quantity: z.number().min(1, 'Quantidade deve ser maior que 0'),
+      unit_price: z.number().min(0.01, 'Preço deve ser maior que 0')
+    })).min(1, 'Pelo menos um item é obrigatório')
   });
 
   useEffect(() => {
@@ -110,23 +130,58 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.customer_name.trim()) {
-      alert('Nome do cliente é obrigatório');
-      return;
-    }
-    
-    if (formData.items.length === 0) {
-      alert('Adicione pelo menos um item à venda');
-      return;
-    }
-    
-    if (formData.items.some(item => !item.product_name.trim() || item.quantity <= 0 || item.unit_price <= 0)) {
-      alert('Todos os itens devem ter nome, quantidade e preço válidos');
-      return;
-    }
+    try {
+      // Sanitize form data
+      const sanitizedData = DataSanitizer.sanitizeFormData({
+        ...formData,
+        items: formData.items.map(item => ({
+          ...item,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.unit_price)
+        }))
+      });
+      
+      // Validate with enhanced schema
+      const validationResult = saleSchema.safeParse(sanitizedData);
 
-    await onSubmit(formData);
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast.error(`Erro de validação: ${firstError.message}`);
+        return;
+      }
+
+      // Additional validation
+      if (!sanitizedData.customer_name.trim()) {
+        toast.error('Nome do cliente é obrigatório');
+        return;
+      }
+
+      if (sanitizedData.items.length === 0) {
+        toast.error('Adicione pelo menos um item à venda');
+        return;
+      }
+
+      // Validate each item
+      for (const item of sanitizedData.items) {
+        if (!item.product_name.trim()) {
+          toast.error('Nome do produto é obrigatório');
+          return;
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          toast.error('Quantidade deve ser maior que zero');
+          return;
+        }
+        if (!item.unit_price || item.unit_price <= 0) {
+          toast.error('Preço unitário deve ser maior que zero');
+          return;
+        }
+      }
+
+      await onSubmit(sanitizedData);
+    } catch (error) {
+      console.error('Erro ao processar venda:', error);
+      toast.error('Erro inesperado ao processar venda');
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -150,9 +205,10 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               <Input
                 id="customer_name"
                 value={formData.customer_name}
-                onChange={(e) => handleInputChange('customer_name', e.target.value)}
+                onChange={(e) => handleInputChange('customer_name', DataSanitizer.sanitizeText(e.target.value))}
                 placeholder="Digite o nome do cliente"
                 required
+                maxLength={100}
               />
             </div>
             
@@ -161,8 +217,9 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               <Input
                 id="customer_phone"
                 value={formData.customer_phone}
-                onChange={(e) => handleInputChange('customer_phone', e.target.value)}
+                onChange={(e) => handleInputChange('customer_phone', DataSanitizer.sanitizePhone(e.target.value))}
                 placeholder="(XX) XXXXX-XXXX"
+                maxLength={20}
               />
             </div>
           </div>
@@ -173,8 +230,9 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               id="customer_email"
               type="email"
               value={formData.customer_email}
-              onChange={(e) => handleInputChange('customer_email', e.target.value)}
+              onChange={(e) => handleInputChange('customer_email', DataSanitizer.sanitizeEmail(e.target.value))}
               placeholder="cliente@exemplo.com"
+              maxLength={254}
             />
           </div>
         </CardContent>

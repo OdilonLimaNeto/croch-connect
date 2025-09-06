@@ -13,10 +13,14 @@ import { Loader2, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { AuthService } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { DataSanitizer, createSafeSchema } from '@/lib/sanitization';
 
 const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  email: createSafeSchema.email(),
+  password: z.string()
+    .min(6, 'Senha deve ter pelo menos 6 caracteres')
+    .max(128, 'Senha muito longa')
+    .transform((val) => val.trim()), // Basic sanitization for password
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -51,13 +55,17 @@ const AdminLogin = () => {
     setError(null);
 
     try {
+      // Additional sanitization (Zod already sanitizes via schema)
+      const sanitizedData = DataSanitizer.sanitizeFormData(data);
+      
       const { user: loggedUser, error } = await AuthService.signIn({
-        email: data.email,
-        password: data.password
+        email: sanitizedData.email,
+        password: sanitizedData.password
       });
       
       if (error) {
         setError(error);
+        toast.error(error);
         return;
       }
 
@@ -71,7 +79,10 @@ const AdminLogin = () => {
         await AuthService.signOut(); // Faz logout se não for admin
       }
     } catch (error) {
-      setError('Erro inesperado. Tente novamente.');
+      const errorMessage = 'Erro inesperado. Tente novamente.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
