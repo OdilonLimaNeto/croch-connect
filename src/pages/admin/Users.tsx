@@ -24,6 +24,7 @@ const createUserSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
   full_name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  role: z.enum(['admin', 'user']),
 });
 
 const editUserSchema = z.object({
@@ -54,6 +55,7 @@ const Users = () => {
       email: '',
       password: '',
       full_name: '',
+      role: 'user',
     },
   });
 
@@ -102,7 +104,7 @@ const Users = () => {
         email: data.email,
         password: data.password,
         full_name: data.full_name,
-        role: 'admin'
+        role: data.role
       });
 
       if (error) {
@@ -111,7 +113,8 @@ const Users = () => {
       }
 
       if (newUser) {
-        toast.success('Administrador criado com sucesso! Um email de confirmação foi enviado.');
+        const roleText = data.role === 'admin' ? 'Administrador' : 'Usuário';
+        toast.success(`${roleText} criado com sucesso! Um email de confirmação foi enviado.`);
         setDialogOpen(false);
         form.reset();
         fetchUsers(); // Recarrega a lista
@@ -210,7 +213,7 @@ const Users = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Usuários</h1>
             <p className="text-muted-foreground">
-              Gerencie os administradores do sistema
+              Gerencie usuários e administradores do sistema
             </p>
           </div>
 
@@ -218,14 +221,14 @@ const Users = () => {
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
-                Novo Administrador
+                Novo Usuário
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <UserPlus className="w-5 h-5" />
-                  Criar Novo Administrador
+                  Criar Novo Usuário
                 </DialogTitle>
               </DialogHeader>
 
@@ -293,6 +296,28 @@ const Users = () => {
                     )}
                   />
 
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Função</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={createLoading}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma função" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="user">Usuário</SelectItem>
+                            <SelectItem value="admin">Administrador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="flex gap-2 pt-4">
                     <Button
                       type="button"
@@ -305,7 +330,7 @@ const Users = () => {
                     </Button>
                     <Button type="submit" disabled={createLoading} className="flex-1">
                       {createLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Criar Administrador
+                      Criar Usuário
                     </Button>
                   </div>
                 </form>
