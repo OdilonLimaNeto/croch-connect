@@ -21,12 +21,29 @@ export class ProductService {
       // Add promotion status and calculate promotional price
       return (products || []).map(product => {
         const promotion = promotionsMap.get(product.id);
-        const hasActivePromotion = promotion && product.promotional_price && product.promotional_price < product.price;
+        
+        // Check for active promotion from promotions table OR promotional_price field
+        let hasActivePromotion = false;
+        let effectivePromotionalPrice = product.promotional_price;
+        let promotionDiscount = null;
+        
+        // First check if there's an active promotion from promotions table
+        if (promotion) {
+          hasActivePromotion = true;
+          effectivePromotionalPrice = product.price * (1 - promotion.discount_percentage / 100);
+          promotionDiscount = promotion.discount_percentage;
+        }
+        // Otherwise check promotional_price field
+        else if (product.promotional_price && product.promotional_price < product.price) {
+          hasActivePromotion = true;
+          promotionDiscount = Math.round(((product.price - product.promotional_price) / product.price) * 100);
+        }
         
         return {
           ...product,
-          hasActivePromotion: !!hasActivePromotion,
-          promotionDiscount: promotion ? promotion.discount_percentage : null
+          promotional_price: effectivePromotionalPrice,
+          hasActivePromotion,
+          promotionDiscount
         };
       });
     } catch (error) {
