@@ -2,27 +2,21 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Star, Award, User } from 'lucide-react';
-
 const AboutFounders = () => {
-  const founders = [
-    {
-      name: "Ana Kaleny",
-      role: "Fundadora & Artesã",
-      description: "Especialista em técnicas tradicionais e inovadoras.",
-      expertise: ["Crochê Tradicional", "Peças Infantis"],
-      icon: <Heart className="w-6 h-6" />
-    },
-    {
-      name: "Thayná Feitosa",
-      role: "Co-Fundadora & Artesã",
-      description: "Sua paixão por detalhes garante que cada produto seja perfeito.",
-      expertise: ["Controle de Qualidade", "Seleção de Materiais", "Acabamentos"],
-      icon: <Award className="w-6 h-6" />
-    }
-  ];
-
-  return (
-    <section className="py-16 bg-background">
+  const founders = [{
+    name: "Ana Kaleny",
+    role: "Fundadora & Artesã",
+    description: "Especialista em técnicas tradicionais e inovadoras.",
+    expertise: ["Crochê Tradicional", "Peças Infantis"],
+    icon: <Heart className="w-6 h-6" />
+  }, {
+    name: "Thayná Feitosa",
+    role: "Co-Fundadora & Artesã",
+    description: "Sua paixão por detalhes garante que cada produto seja perfeito.",
+    expertise: ["Controle de Qualidade", "Seleção de Materiais", "Acabamentos"],
+    icon: <Award className="w-6 h-6" />
+  }];
+  return <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge className="mx-auto w-fit bg-accent/10 text-accent border-accent/20 mb-4">
@@ -39,8 +33,7 @@ const AboutFounders = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {founders.map((founder, index) => (
-            <Card key={index} className="group hover:shadow-elegant transition-all duration-300">
+          {founders.map((founder, index) => <Card key={index} className="group hover:shadow-elegant transition-all duration-300">
               <CardContent className="p-8">
                 <div className="flex items-start gap-6">
                   <div className="flex-shrink-0">
@@ -64,23 +57,16 @@ const AboutFounders = () => {
                     <div>
                       <h4 className="font-semibold text-foreground mb-3"></h4>
                       <div className="flex flex-wrap gap-2">
-                        {founder.expertise.map((skill, skillIndex) => (
-                          <Badge 
-                            key={skillIndex} 
-                            variant="outline" 
-                            className="text-xs border-primary/30 text-primary hover:bg-primary/10"
-                          >
-                            <Star className="w-3 h-3 mr-1"/>
+                        {founder.expertise.map((skill, skillIndex) => <Badge key={skillIndex} variant="outline" className="text-xs border-primary/30 text-primary hover:bg-primary/10 my-0 py-0 mx-0 px-[17px]">
+                            <Star className="w-3 h-3 mr-1" />
                             {skill}
-                          </Badge>
-                        ))}
+                          </Badge>)}
                       </div>
                     </div>
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          ))}
+            </Card>)}
         </div>
 
         <div className="text-center mt-12">
@@ -95,8 +81,6 @@ const AboutFounders = () => {
           </Card>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default AboutFounders;
