@@ -190,6 +190,39 @@ export type Database = {
           },
         ]
       }
+      site_settings: {
+        Row: {
+          created_at: string
+          favicon_url: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          primary_color: string | null
+          site_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          favicon_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          primary_color?: string | null
+          site_name?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          favicon_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          primary_color?: string | null
+          site_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

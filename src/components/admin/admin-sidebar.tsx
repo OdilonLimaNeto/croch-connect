@@ -23,7 +23,8 @@ import {
   LogOut,
   User,
   Home,
-  Users
+  Users,
+  Settings
 } from 'lucide-react';
 
 const menuItems = [
@@ -56,6 +57,11 @@ const menuItems = [
     title: 'Usuários',
     url: '/admin/usuarios',
     icon: Users,
+  },
+  {
+    title: 'Configurações',
+    url: '/admin/configuracoes',
+    icon: Settings,
   },
 ];
 

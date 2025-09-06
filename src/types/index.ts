@@ -147,3 +147,22 @@ export interface BulkAction<T> {
   action: (items: T[]) => void;
   variant?: 'default' | 'destructive';
 }
+
+// Site Settings types
+export interface SiteSettings {
+  id: string;
+  site_name: string;
+  logo_url: string | null;
+  favicon_url: string | null;
+  primary_color: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SiteSettingsFormData {
+  site_name: string;
+  primary_color: string;
+  logo?: File;
+  favicon?: File;
+}

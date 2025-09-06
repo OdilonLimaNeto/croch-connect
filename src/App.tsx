@@ -16,6 +16,7 @@ import AdminPromotions from "./pages/admin/Promotions";
 import AdminMaterials from "./pages/admin/Materials";
 import AdminFounders from "./pages/admin/Founders";
 import AdminUsers from "./pages/admin/Users";
+import AdminSiteSettings from "./pages/admin/SiteSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,11 @@ const App = () => (
             <Route path="/admin/usuarios" element={
               <ProtectedRoute requireAdmin>
                 <AdminUsers />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/configuracoes" element={
+              <ProtectedRoute requireAdmin>
+                <AdminSiteSettings />
               </ProtectedRoute>
             } />
             
