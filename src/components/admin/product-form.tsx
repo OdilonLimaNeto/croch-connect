@@ -285,7 +285,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const handleImagesChange = (newFiles: File[]) => {
-    const currentImageCount = imageItems.length;
+    const currentImageCount = imageItems.filter(item => !item.isNew).length;
     const availableSlots = MAX_IMAGES - currentImageCount;
     
     if (newFiles.length > availableSlots) {
@@ -293,16 +293,22 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       return;
     }
     
+    // Clean up old object URLs from previous new images
+    imageItems.filter(item => item.isNew).forEach(item => {
+      URL.revokeObjectURL(item.url);
+    });
+    
     setImages(newFiles);
     
-    // Add new images to the preview
+    // Replace new images in the preview (keeping existing ones)
+    const existingImages = imageItems.filter(item => !item.isNew);
     const newImageItems = newFiles.map((file, index) => ({
       id: `new-${Date.now()}-${index}`,
       url: URL.createObjectURL(file),
       isNew: true
     }));
     
-    setImageItems(prev => [...prev, ...newImageItems]);
+    setImageItems([...existingImages, ...newImageItems]);
   };
 
   const handleDragEnd = (event: any) => {
@@ -323,9 +329,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     if (!imageItem) return;
 
     if (imageItem.isNew) {
-      // Remove from new images
-      const imageIndex = parseInt(imageId.split('-')[2]);
-      setImages(prev => prev.filter((_, index) => index !== imageIndex));
+      // Remove from new images array
+      const newImageIndex = imageItems
+        .filter(item => item.isNew)
+        .findIndex(item => item.id === imageId);
+      
+      if (newImageIndex !== -1) {
+        setImages(prev => prev.filter((_, index) => index !== newImageIndex));
+      }
       
       // Revoke object URL to prevent memory leaks
       URL.revokeObjectURL(imageItem.url);
@@ -345,10 +356,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       const newImageUrls = images.length > 0 ? await uploadImages(images) : [];
       
       // Get final image order (existing + new images)
-      const allImages = imageItems.map(item => {
+      const allImages = imageItems.map((item, itemIndex) => {
         if (item.isNew) {
-          const imageIndex = parseInt(item.id.split('-')[2]);
-          return newImageUrls[imageIndex];
+          const newImageIndex = imageItems
+            .slice(0, itemIndex)
+            .filter(img => img.isNew).length;
+          return newImageUrls[newImageIndex];
         }
         return item.url;
       }).filter(Boolean);
