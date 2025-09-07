@@ -100,8 +100,8 @@ const ProductDetail = () => {
     );
   }
 
-  const hasPromotion = product.promotional_price && product.promotional_price < product.price;
-  const displayPrice = hasPromotion ? product.promotional_price : product.price;
+  const hasPromotion = product.hasActivePromotion;
+  const displayPrice = hasPromotion ? product.promotional_price! : product.price;
   const originalPrice = hasPromotion ? product.price : null;
 
   return (

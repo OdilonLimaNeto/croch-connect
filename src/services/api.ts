@@ -103,7 +103,44 @@ export class ProductService {
         .single();
 
       if (error) throw error;
-      return data;
+      if (!data) return null;
+
+      // Apply the same promotion logic as getProducts()
+      const activePromotions = await this.getActivePromotions();
+      const promotionsMap = new Map(activePromotions.map(p => [p.product_id, p]));
+      
+      const promotion = promotionsMap.get(data.id);
+      
+      // Initialize promotion properties
+      let hasActivePromotion = false;
+      let effectivePromotionalPrice = data.promotional_price;
+      let promotionDiscount = null;
+      
+      // First check if there's an active promotion from promotions table
+      if (promotion) {
+        const calculatedPrice = data.price * (1 - promotion.discount_percentage / 100);
+        // Only consider it a valid promotion if it results in a lower price
+        if (calculatedPrice < data.price) {
+          hasActivePromotion = true;
+          effectivePromotionalPrice = calculatedPrice;
+          promotionDiscount = promotion.discount_percentage;
+          console.log(`Product ${data.title} has active promotion: ${promotionDiscount}% off`);
+        }
+      }
+      // Otherwise check promotional_price field
+      else if (data.promotional_price && data.promotional_price < data.price) {
+        hasActivePromotion = true;
+        promotionDiscount = Math.round(((data.price - data.promotional_price) / data.price) * 100);
+        console.log(`Product ${data.title} has promotional price: R$${data.promotional_price}`);
+      }
+      
+      // Return product with promotion data
+      return {
+        ...data,
+        promotional_price: effectivePromotionalPrice,
+        hasActivePromotion,
+        promotionDiscount
+      };
     } catch (error) {
       console.error('Error fetching product:', error);
       return null;
