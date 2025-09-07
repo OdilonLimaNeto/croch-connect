@@ -4,6 +4,8 @@ import { Product, Promotion, Material, ProductFormData, PromotionFormData } from
 export class ProductService {
   static async getProducts(activeOnly = true): Promise<Product[]> {
     try {
+      console.log('ProductService: Fetching products with activeOnly =', activeOnly);
+      
       let query = supabase.from('products').select('*');
       
       if (activeOnly) {
@@ -14,6 +16,8 @@ export class ProductService {
 
       if (error) throw error;
       
+      console.log('ProductService: Found products:', products?.length || 0);
+      
       // Return empty array if no products found
       if (!products || products.length === 0) {
         return [];
@@ -21,10 +25,12 @@ export class ProductService {
       
       // Get active promotions to check which products are in promotion
       const activePromotions = await this.getActivePromotions();
+      console.log('ProductService: Found active promotions:', activePromotions.length);
+      
       const promotionsMap = new Map(activePromotions.map(p => [p.product_id, p]));
       
       // Add promotion status and calculate promotional price for ALL products
-      return products.map(product => {
+      const processedProducts = products.map(product => {
         const promotion = promotionsMap.get(product.id);
         
         // Initialize promotion properties for all products
@@ -40,12 +46,14 @@ export class ProductService {
             hasActivePromotion = true;
             effectivePromotionalPrice = calculatedPrice;
             promotionDiscount = promotion.discount_percentage;
+            console.log(`Product ${product.title} has active promotion: ${promotionDiscount}% off`);
           }
         }
         // Otherwise check promotional_price field
         else if (product.promotional_price && product.promotional_price < product.price) {
           hasActivePromotion = true;
           promotionDiscount = Math.round(((product.price - product.promotional_price) / product.price) * 100);
+          console.log(`Product ${product.title} has promotional price: R$${product.promotional_price}`);
         }
         
         // Return product with promotion data (will be false/null for non-promotional products)
@@ -56,6 +64,12 @@ export class ProductService {
           promotionDiscount
         };
       });
+      
+      console.log('ProductService: Processed products with promotions:', 
+        processedProducts.filter(p => p.hasActivePromotion).length, 
+        'out of', processedProducts.length);
+      
+      return processedProducts;
     } catch (error) {
       console.error('Error fetching products:', error);
       return [];
