@@ -387,13 +387,25 @@ export class MaterialService {
 
 export class WhatsAppService {
   static generateMessage(product: Product): string {
-    const baseMessage = `Olá! Tenho interesse no produto: *${product.title}*`;
-    const priceInfo = product.promotional_price 
-      ? `\nPreço promocional: R$ ${product.promotional_price.toFixed(2)}`
-      : `\nPreço: R$ ${product.price.toFixed(2)}`;
+    const baseMessage = `Olá! Tenho interesse no produto: *${product.title}*`;   
     
-    return `${baseMessage}${priceInfo}\n\nPoderia me enviar mais informações?`;
+    let priceInfo = '';
+    if (product.promotional_price && product.promotional_price < product.price) {
+      priceInfo = `\nPreço promocional: R$ ${product.promotional_price.toFixed(2)}`;
+      priceInfo += `\nPreço original: R$ ${product.price.toFixed(2)}`;
+    } else {
+      priceInfo = `\nPreço: R$ ${product.price.toFixed(2)}`;
+    }
+    
+    const stockInfo = product.stock_quantity > 0 
+      ? '\n✅ Produto disponível' 
+      : '\n❌ Produto esgotado';
+    
+    const message = `${baseMessage}${priceInfo}${stockInfo}\n\nPoderia me enviar mais informações sobre este produto?`;
+    
+    return message;
   }
+
 
   static openWhatsApp(phoneNumber: string, message: string): void {
     const encodedMessage = encodeURIComponent(message);
