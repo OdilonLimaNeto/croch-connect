@@ -5,10 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, MessageCircle, Star, Heart, Award, User } from 'lucide-react';
 import { Product } from '@/types';
-import { ProductService, WhatsAppService } from '@/services/api';
+import { ProductService, WhatsAppService, SlugService } from '@/services/api';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-import ProductGrid from '@/components/products/product-grid';
 import HeroCarousel from '@/components/hero-carousel';
 import AboutFounders from '@/components/about-founders';
 import heroImage from '@/assets/hero-image.jpg';
@@ -37,7 +36,8 @@ const Index = () => {
   }, []);
 
   const handleProductClick = (product: Product) => {
-    navigate(`/produto/${product.id}`);
+    const slug = SlugService.generateSlug(product.title, product.id);
+    navigate(`/produto/${slug}`);
   };
 
   const handleWhatsAppContact = () => {

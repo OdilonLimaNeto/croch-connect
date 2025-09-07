@@ -208,6 +208,85 @@ export class ProductService {
     }
   }
 
+  // Utility function to generate URL-safe slugs
+export class SlugService {
+  static generateSlug(title: string, id: string): string {
+    // Convert to lowercase and remove special characters
+    const baseSlug = title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Remove multiple hyphens
+      .trim()
+      .substring(0, 50); // Limit length
+    
+    // Add a short hash of the ID for uniqueness
+    const hash = this.hashString(id).substring(0, 8);
+    return `${baseSlug}-${hash}`;
+  }
+
+  static hashString(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  static async getProductIdFromSlug(slug: string): Promise<string | null> {
+    try {
+      const parts = slug.split('-');
+      if (parts.length < 2) return null;
+      
+      const hash = parts[parts.length - 1];
+      if (hash.length !== 8) return null;
+
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('id, title')
+        .eq('is_active', true);
+
+      if (error || !products) return null;
+
+      for (const product of products) {
+        const productHash = this.hashString(product.id).substring(0, 8);
+        if (productHash === hash) {
+          return product.id;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error getting product ID from slug:', error);
+      return null;
+    }
+  }
+}
+
+    static addSlugToProducts(products: Product[]): (Product & { slug: string })[] {
+    return products.map(product => ({
+      ...product,
+      slug: SlugService.generateSlug(product.title, product.id)
+    }));
+  }
+
+
+  static async getProductBySlug(slug: string): Promise<Product | null> {
+    try {
+      const productId = await SlugService.getProductIdFromSlug(slug);
+      if (!productId) return null;
+      
+      return await this.getProduct(productId);
+    } catch (error) {
+      console.error('Error fetching product by slug:', error);
+      return null;
+    }
+  }
+
   static async toggleProductStatus(id: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase

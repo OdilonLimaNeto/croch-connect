@@ -13,7 +13,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { Product } from '@/types';
-import { ProductService, WhatsAppService } from '@/services/api';
+import { ProductService, WhatsAppService, SlugService } from '@/services/api';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { LoadingScreen } from '@/components/ui/loading-spinner';
@@ -21,21 +21,21 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const ProductDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
-    if (!id) {
+    if (!slug) {
       navigate('/produtos');
       return;
     }
 
     const loadProduct = async () => {
       try {
-        const productData = await ProductService.getProduct(id);
+        const productData = await ProductService.getProductBySlug(slug);
         if (!productData) {
           navigate('/produtos');
           return;
@@ -50,7 +50,7 @@ const ProductDetail = () => {
     };
 
     loadProduct();
-  }, [id, navigate]);
+  }, [slug, navigate]);
 
   const handleWhatsAppContact = () => {
     if (product) {

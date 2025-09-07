@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, SortAsc } from 'lucide-react';
 import { Product, ProductFilters } from '@/types';
-import { ProductService, MaterialService } from '@/services/api';
+import { ProductService, MaterialService, SlugService } from '@/services/api';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import ProductGrid from '@/components/products/product-grid';
@@ -145,7 +145,8 @@ const Products = () => {
   };
 
   const handleProductClick = (product: Product) => {
-    navigate(`/produto/${product.id}`);
+    const slug = SlugService.generateSlug(product.title, product.id);
+    navigate(`/produto/${slug}`);
   };
 
   const hasActiveFilters = Object.keys(filters).some(key => 

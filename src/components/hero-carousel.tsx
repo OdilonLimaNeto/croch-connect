@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/carousel';
 import { MessageCircle, Percent, ArrowRight, Star, Tag } from 'lucide-react';
 import { Promotion, Product } from '@/types';
-import { PromotionService, WhatsAppService } from '@/services/api';
+import { PromotionService, WhatsAppService, SlugService } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
 import Autoplay from 'embla-carousel-autoplay';
 
@@ -49,7 +49,8 @@ const HeroCarousel = () => {
   }, [api]);
 
   const handleProductClick = (product: Product) => {
-    navigate(`/produto/${product.id}`);
+    const slug = SlugService.generateSlug(product.title, product.id);
+    navigate(`/produto/${slug}`);
   };
 
   const handleWhatsApp = (product: Product) => {
