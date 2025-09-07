@@ -27,8 +27,6 @@ const Footer = () => {
             <div className="space-y-2 text-sm">
               <div><a href="/" className="text-muted-foreground hover:text-foreground transition-colors">Início</a></div>
               <div><a href="/produtos" className="text-muted-foreground hover:text-foreground transition-colors">Produtos</a></div>
-              <div><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Sobre Nós</a></div>
-              <div><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Como Cuidar</a></div>
             </div>
           </div>
 
@@ -38,15 +36,11 @@ const Footer = () => {
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3 text-muted-foreground">
                 <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp: (11) 99999-9999</span>
+                <span>WhatsApp: (68) 9 9283-1533</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>contato@nodeuas.com.br</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Phone className="w-4 h-4" />
-                <span>Seg à Sex: 9h às 18h</span>
+                <span>nodeduas2025@gmail.com</span>
               </div>
             </div>
           </div>

@@ -42,7 +42,7 @@ const Index = () => {
 
   const handleWhatsAppContact = () => {
     const message = "Olá! Gostaria de conhecer mais produtos artesanais da Nó de Duas. Poderia me ajudar?";
-    WhatsAppService.openWhatsApp("5511999999999", message);
+    WhatsAppService.openWhatsApp("5568992831533", message);
   };
 
   return (

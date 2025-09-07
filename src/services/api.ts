@@ -401,7 +401,7 @@ export class WhatsAppService {
     window.open(whatsappUrl, '_blank');
   }
 
-  static contactProduct(product: Product, phoneNumber: string = '68981215219'): void {
+  static contactProduct(product: Product, phoneNumber: string = '5568992831533'): void {
     const message = this.generateMessage(product);
     this.openWhatsApp(phoneNumber, message);
   }
