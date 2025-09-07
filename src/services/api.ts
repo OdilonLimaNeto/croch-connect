@@ -387,7 +387,7 @@ export class MaterialService {
 
 export class WhatsAppService {
   static generateMessage(product: Product): string {
-    const baseMessage = `Olá! Tenho interesse no produto: *${product.title}*`;   
+    const baseMessage = `Ola! Tenho interesse no produto: ${product.title}`;   
     
     let priceInfo = '';
     if (product.promotional_price && product.promotional_price < product.price) {
@@ -398,10 +398,10 @@ export class WhatsAppService {
     }
     
     const stockInfo = product.stock_quantity > 0 
-      ? '\n✅ Produto disponível' 
-      : '\n❌ Produto esgotado';
+      ? '\nProduto disponivel' 
+      : '\nProduto esgotado';
     
-    const message = `${baseMessage}${priceInfo}${stockInfo}\n\nPoderia me enviar mais informações sobre este produto?`;
+    const message = `${baseMessage}${priceInfo}${stockInfo}\n\nPoderia me enviar mais informacoes sobre este produto?`;
     
     return message;
   }
