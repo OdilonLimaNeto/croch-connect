@@ -146,7 +146,7 @@ const Products = () => {
   };
 
   const handleProductClick = (product: Product) => {
-    console.log('Clicando no produto:', product.title, product.id);
+    console.log('handleProductClick chamado em Products.tsx para produto:', product.title, product.id);
     const slug = SlugService.generateSlug(product.title, product.id);
     console.log('Slug gerado:', slug);
     console.log('Navegando para:', `/produto/${slug}`);

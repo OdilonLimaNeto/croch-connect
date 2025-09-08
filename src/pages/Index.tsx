@@ -36,7 +36,10 @@ const Index = () => {
   }, []);
 
   const handleProductClick = (product: Product) => {
+    console.log('handleProductClick chamado em Index.tsx para produto:', product.title, product.id);
     const slug = SlugService.generateSlug(product.title, product.id);
+    console.log('Slug gerado:', slug);
+    console.log('Navegando para:', `/produto/${slug}`);
     navigate(`/produto/${slug}`);
   };
 
