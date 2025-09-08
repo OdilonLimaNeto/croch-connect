@@ -17,8 +17,8 @@ export class SlugService {
       .trim()
       .substring(0, 50); // Limit length
     
-    // Add a short hash of the ID for uniqueness
-    const hash = this.hashString(id).substring(0, 8);
+    // Add a short hash of the ID for uniqueness - always 8 characters
+    const hash = this.hashString(id);
     const finalSlug = `${baseSlug}-${hash}`;
     
     console.log('SlugService: Generated slug:', finalSlug, 'Hash:', hash);
@@ -32,7 +32,8 @@ export class SlugService {
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
-    return Math.abs(hash).toString(36);
+    // Ensure hash is always 8 characters by padding with zeros
+    return Math.abs(hash).toString(36).padStart(8, '0');
   }
 
   static async getProductIdFromSlug(slug: string): Promise<string | null> {
@@ -72,7 +73,7 @@ export class SlugService {
       console.log('SlugService: Found products:', products.length);
 
       for (const product of products) {
-        const productHash = this.hashString(product.id).substring(0, 8);
+        const productHash = this.hashString(product.id);
         console.log(`SlugService: Checking product ${product.title} - ID: ${product.id} - Hash: ${productHash} vs ${hash}`);
         if (productHash === hash) {
           console.log('SlugService: Found matching product ID:', product.id);
