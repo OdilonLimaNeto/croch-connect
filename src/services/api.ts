@@ -4,6 +4,8 @@ import { Product, Promotion, Material, ProductFormData, PromotionFormData } from
   // Utility function to generate URL-safe slugs
 export class SlugService {
   static generateSlug(title: string, id: string): string {
+    console.log('SlugService: Generating slug for title:', title, 'ID:', id);
+    
     // Convert to lowercase and remove special characters
     const baseSlug = title
       .toLowerCase()
@@ -17,7 +19,10 @@ export class SlugService {
     
     // Add a short hash of the ID for uniqueness
     const hash = this.hashString(id).substring(0, 8);
-    return `${baseSlug}-${hash}`;
+    const finalSlug = `${baseSlug}-${hash}`;
+    
+    console.log('SlugService: Generated slug:', finalSlug, 'Hash:', hash);
+    return finalSlug;
   }
 
   static hashString(str: string): string {
@@ -32,26 +37,50 @@ export class SlugService {
 
   static async getProductIdFromSlug(slug: string): Promise<string | null> {
     try {
+      console.log('SlugService: Trying to get product ID from slug:', slug);
       const parts = slug.split('-');
-      if (parts.length < 2) return null;
+      console.log('SlugService: Slug parts:', parts);
+      
+      if (parts.length < 2) {
+        console.log('SlugService: Invalid slug - not enough parts');
+        return null;
+      }
       
       const hash = parts[parts.length - 1];
-      if (hash.length !== 8) return null;
+      console.log('SlugService: Extracted hash:', hash);
+      
+      if (hash.length !== 8) {
+        console.log('SlugService: Invalid hash length:', hash.length);
+        return null;
+      }
 
       const { data: products, error } = await supabase
         .from('products')
         .select('id, title')
         .eq('is_active', true);
 
-      if (error || !products) return null;
+      if (error) {
+        console.error('SlugService: Database error:', error);
+        return null;
+      }
+      
+      if (!products) {
+        console.log('SlugService: No products found');
+        return null;
+      }
+
+      console.log('SlugService: Found products:', products.length);
 
       for (const product of products) {
         const productHash = this.hashString(product.id).substring(0, 8);
+        console.log(`SlugService: Checking product ${product.title} - ID: ${product.id} - Hash: ${productHash} vs ${hash}`);
         if (productHash === hash) {
+          console.log('SlugService: Found matching product ID:', product.id);
           return product.id;
         }
       }
 
+      console.log('SlugService: No matching product found for hash:', hash);
       return null;
     } catch (error) {
       console.error('Error getting product ID from slug:', error);
@@ -277,10 +306,24 @@ export class ProductService {
 
   static async getProductBySlug(slug: string): Promise<Product | null> {
     try {
+      console.log('ProductService: Getting product by slug:', slug);
       const productId = await SlugService.getProductIdFromSlug(slug);
-      if (!productId) return null;
       
-      return await this.getProduct(productId);
+      if (!productId) {
+        console.log('ProductService: No product ID found for slug:', slug);
+        return null;
+      }
+      
+      console.log('ProductService: Found product ID:', productId);
+      const product = await this.getProduct(productId);
+      
+      if (!product) {
+        console.log('ProductService: Product not found with ID:', productId);
+      } else {
+        console.log('ProductService: Successfully loaded product:', product.title);
+      }
+      
+      return product;
     } catch (error) {
       console.error('Error fetching product by slug:', error);
       return null;
