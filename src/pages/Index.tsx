@@ -10,6 +10,7 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import HeroCarousel from '@/components/hero-carousel';
 import AboutFounders from '@/components/about-founders';
+import ProductGrid from '@/components/products/product-grid';
 import heroImage from '@/assets/hero-image.jpg';
 import productBabySet from '@/assets/product-baby-set.jpg';
 import productBlanket from '@/assets/product-blanket.jpg';
@@ -172,64 +173,12 @@ const Index = () => {
           
           {featuredProducts.length > 0 ? (
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredProducts.map((product, index) => (
-                  <Card 
-                    key={product.id} 
-                    className="group cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105"
-                    onClick={() => handleProductClick(product)}
-                  >
-                    <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
-                      {product.images && product.images.length > 0 ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
-                          <span className="text-muted-foreground">Sem imagem</span>
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 line-clamp-2">{product.title}</h3>
-                      {product.description && (
-                        <p className="text-muted-foreground mb-4 line-clamp-3">
-                          {product.description}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between">
-                        {product.promotional_price ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg text-muted-foreground line-through">
-                              R$ {product.price.toFixed(2)}
-                            </span>
-                            <span className="text-2xl font-bold text-primary">
-                              R$ {product.promotional_price.toFixed(2)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-2xl font-bold text-primary">
-                            R$ {product.price.toFixed(2)}
-                          </span>
-                        )}
-                        <Button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            WhatsAppService.contactProduct(product);
-                          }} 
-                          className="gap-2"
-                          disabled={product.stock_quantity === 0}
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          {product.stock_quantity === 0 ? 'Esgotado' : 'Comprar'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <ProductGrid
+                products={featuredProducts}
+                loading={loading}
+                onProductClick={handleProductClick}
+                className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              />
             </div>
           ) : (
             /* Fallback when no products in database */

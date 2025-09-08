@@ -42,6 +42,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         "group cursor-pointer transition-all duration-300 hover:shadow-elegant hover:-translate-y-1",
         className
       )}
+      onClick={handleViewDetails}
     >
       <div className="relative overflow-hidden rounded-t-lg">
         {/* Product Image */}
