@@ -27,15 +27,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
     WhatsAppService.contactProduct(product);
   };
 
-  const handleViewDetails = () => {
+  const handleViewDetails = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     onViewDetails?.(product);
   };
 
   return (
-    <Card className={cn(
-      "group cursor-pointer transition-all duration-300 hover:shadow-elegant hover:-translate-y-1",
-      className
-    )}>
+    <Card 
+      className={cn(
+        "group cursor-pointer transition-all duration-300 hover:shadow-elegant hover:-translate-y-1",
+        className
+      )}
+      onClick={handleViewDetails}
+    >
       <div className="relative overflow-hidden rounded-t-lg">
         {/* Product Image */}
         <div className="aspect-square bg-muted">
@@ -119,7 +125,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Action Buttons - Mobile First */}
         <div className="flex flex-col gap-2 pt-3">
           <Button
-            onClick={handleViewDetails}
+            onClick={(e) => handleViewDetails(e)}
             variant="outline"
             size="sm"
             className="w-full gap-2 h-9 hover:bg-muted/50 border-muted-foreground/20 hover:border-primary/50 transition-all duration-200 text-sm"

@@ -33,6 +33,7 @@ const Products = () => {
           MaterialService.getMaterials()
         ]);
         
+        console.log('Produtos carregados:', productsData.length);
         setProducts(productsData);
         setFilteredProducts(productsData);
         setMaterials(materialsData.map(m => m.name));
@@ -145,7 +146,10 @@ const Products = () => {
   };
 
   const handleProductClick = (product: Product) => {
+    console.log('Clicando no produto:', product.title, product.id);
     const slug = SlugService.generateSlug(product.title, product.id);
+    console.log('Slug gerado:', slug);
+    console.log('Navegando para:', `/produto/${slug}`);
     navigate(`/produto/${slug}`);
   };
 
