@@ -163,7 +163,7 @@ const Index = () => {
 
       {/* Other Featured Products */}
       <section className="py-16 bg-card">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 flex flex-col items-center">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-primary mb-4">Outros produtos em destaque</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
