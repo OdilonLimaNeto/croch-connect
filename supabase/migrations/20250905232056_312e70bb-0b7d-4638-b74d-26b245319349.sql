@@ -1,3 +1,6 @@
+-- Create user_role enum type
+CREATE TYPE user_role AS ENUM ('admin', 'user');
+
 -- Create profiles table for user management
 CREATE TABLE public.profiles (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,

@@ -241,6 +241,14 @@ export interface SaleFormData {
   sale_date: Date;
   notes?: string;
   items: SaleItemFormData[];
+  installments?: InstallmentFormData[];
+}
+
+export interface InstallmentFormData {
+  amount: number;
+  due_date: string;
+  status: 'pending' | 'paid' | 'overdue';
+  payment_method?: string;
 }
 
 export interface SaleItemFormData {
@@ -248,6 +256,7 @@ export interface SaleItemFormData {
   product_name: string;
   quantity: number;
   unit_price: number;
+  total_price: number;
 }
 
 // Analytics types

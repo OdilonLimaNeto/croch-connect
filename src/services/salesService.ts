@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Sale, SaleFormData, Installment } from '@/types';
+import { StockService } from './stockService';
 
 export class SalesService {
   static async getSales(): Promise<Sale[]> {
@@ -41,9 +42,18 @@ export class SalesService {
     }
   }
 
-  static async createSale(saleData: SaleFormData): Promise<{ success: boolean; error?: string; sale?: Sale }> {
+  async createSale(saleData: SaleFormData): Promise<{ data: Sale | null; error: string | null }> {
     try {
-      // Insert sale
+      // Validar estoque antes de criar a venda
+      const stockValidation = await StockService.validateStockAvailability(saleData.items);
+      
+      if (!stockValidation.isValid) {
+        return { 
+          data: null, 
+          error: `Estoque insuficiente: ${stockValidation.invalidItems?.join(', ')}` 
+        };
+      }
+
       const { data: sale, error: saleError } = await supabase
         .from('sales')
         .insert({
@@ -54,35 +64,77 @@ export class SalesService {
           payment_method: saleData.payment_method,
           payment_status: saleData.payment_status,
           installments_count: saleData.installments_count,
-          sale_date: saleData.sale_date.toISOString().split('T')[0],
-          notes: saleData.notes,
+          sale_date: saleData.sale_date.toISOString(),
+          notes: saleData.notes
         })
         .select()
         .single();
 
-      if (saleError) throw saleError;
+      if (saleError || !sale) {
+        throw new Error(saleError?.message || 'Erro ao criar venda');
+      }
 
-      // Insert sale items
-      if (saleData.items.length > 0) {
+      // Inserir os itens da venda
+      if (saleData.items && saleData.items.length > 0) {
         const saleItems = saleData.items.map(item => ({
           sale_id: sale.id,
           product_id: item.product_id,
           product_name: item.product_name,
           quantity: item.quantity,
           unit_price: item.unit_price,
-          total_price: item.quantity * item.unit_price,
+          total_price: item.total_price
         }));
 
         const { error: itemsError } = await supabase
           .from('sale_items')
           .insert(saleItems);
 
-        if (itemsError) throw itemsError;
+        if (itemsError) {
+          // Rollback da venda se não conseguir inserir os itens
+          await supabase.from('sales').delete().eq('id', sale.id);
+          throw new Error(itemsError.message);
+        }
+
+        // Atualizar o estoque após criação bem-sucedida da venda
+        const stockUpdateResult = await StockService.updateProductsStock(saleData.items);
+        
+        if (!stockUpdateResult.success) {
+          // Rollback completo se não conseguir atualizar o estoque
+          await supabase.from('sales').delete().eq('id', sale.id);
+          throw new Error(`Erro ao atualizar estoque: ${stockUpdateResult.error}`);
+        }
       }
 
-      return { success: true, sale: sale as Sale };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+      // Processar installments se existirem
+      if (saleData.installments && saleData.installments.length > 0) {
+        const installments = saleData.installments.map((installment, index) => ({
+          sale_id: sale.id,
+          installment_number: index + 1,
+          amount: installment.amount,
+          due_date: installment.due_date,
+          status: installment.status || 'pending',
+          payment_method: installment.payment_method
+        }));
+
+        const { error: installmentsError } = await supabase
+          .from('installments')
+          .insert(installments);
+
+        if (installmentsError) {
+          // Rollback da venda e restaurar estoque se não conseguir inserir installments
+          await StockService.restoreProductsStock(saleData.items);
+          await supabase.from('sales').delete().eq('id', sale.id);
+          throw new Error(installmentsError.message);
+        }
+      }
+
+      return { data: sale as Sale, error: null };
+    } catch (error) {
+      console.error('Erro ao criar venda:', error);
+      return { 
+        data: null, 
+        error: error instanceof Error ? error.message : 'Erro inesperado ao criar venda' 
+      };
     }
   }
 
