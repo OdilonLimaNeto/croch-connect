@@ -490,7 +490,9 @@ export default function Sales() {
   });
 
   const filteredExpenses = expenses.filter(expense => {
-    if (filters.search && !expense.description.toLowerCase().includes(filters.search.toLowerCase())) {
+    if (filters.search && 
+        !expense.description.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !(expense.supplier && expense.supplier.toLowerCase().includes(filters.search.toLowerCase()))) {
       return false;
     }
     if (filters.category && expense.category !== filters.category) {
@@ -500,9 +502,31 @@ export default function Sales() {
   });
 
   const filteredInstallments = installments.filter(installment => {
-    if (filters.status && installment.status !== filters.status) {
+    // Verificar status, incluindo lógica para vencidos
+    if (filters.status) {
+      if (filters.status === 'overdue') {
+        const dueDate = new Date(installment.due_date);
+        const today = new Date();
+        const isOverdue = dueDate < today && installment.status === 'pending';
+        if (!isOverdue) return false;
+      } else if (installment.status !== filters.status) {
+        return false;
+      }
+    }
+    
+    // Filtrar por cliente (buscar na venda relacionada)
+    if (filters.search) {
+      const sale = sales.find(s => s.id === installment.sale_id);
+      if (!sale || !sale.customer_name.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+    }
+    
+    // Filtrar por forma de pagamento
+    if (filters.paymentMethod && installment.payment_method !== filters.paymentMethod) {
       return false;
     }
+    
     return true;
   });
 
@@ -608,58 +632,240 @@ export default function Sales() {
     {
       key: 'description',
       label: 'Descrição',
-      sortable: true
+      sortable: true,
+      render: (value, expense) => (
+        <div>
+          <div className="font-medium">{value}</div>
+          {expense.notes && (
+            <div className="text-sm text-muted-foreground max-w-[200px] truncate" title={expense.notes}>
+              {expense.notes}
+            </div>
+          )}
+        </div>
+      )
     },
     {
       key: 'amount',
       label: 'Valor',
       sortable: true,
-      render: (value) => formatCurrency(Number(value))
+      render: (value) => (
+        <div className="font-medium text-red-600">
+          {formatCurrency(Number(value))}
+        </div>
+      )
     },
     {
       key: 'category',
       label: 'Categoria',
-      render: (value) => getCategoryLabel(value as string)
+      sortable: true,
+      render: (value) => {
+        const categoryMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+          materials: { label: 'Materiais', variant: 'default' },
+          equipment: { label: 'Equipamentos', variant: 'secondary' },
+          other: { label: 'Outros', variant: 'outline' }
+        };
+        const category = categoryMap[value as string] || { label: value as string, variant: 'outline' as const };
+        return <Badge variant={category.variant}>{category.label}</Badge>;
+      }
     },
     {
       key: 'supplier',
-      label: 'Fornecedor'
+      label: 'Fornecedor',
+      sortable: true,
+      render: (value) => value || '-'
     },
     {
       key: 'date',
-      label: 'Data',
+      label: 'Data do Gasto',
       sortable: true,
       render: (value) => formatDate(value as string)
+    },
+    {
+      key: 'created_at',
+      label: 'Cadastrado em',
+      sortable: true,
+      render: (value) => formatDate(value as string)
+    },
+    {
+      key: 'id',
+      label: 'Ações',
+      render: (value, expense) => (
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleEditExpense(expense)}
+            disabled={formLoading}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleDeleteExpense(expense)}
+            disabled={formLoading}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )
     }
   ];
 
   const installmentsColumns: TableColumn<Installment>[] = [
     {
+      key: 'sale_id',
+      label: 'Venda',
+      render: (value, installment) => {
+        // Encontrar a venda correspondente para mostrar informações do cliente
+        const sale = sales.find(s => s.id === installment.sale_id);
+        return (
+          <div>
+            <div className="font-medium text-sm">
+              {sale?.customer_name || 'Cliente não encontrado'}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              ID: {value?.toString().slice(-8) || 'N/A'}
+            </div>
+          </div>
+        );
+      }
+    },
+    {
       key: 'installment_number',
       label: 'Parcela',
-      render: (value, item) => `${value}/${item.sale_id ? 'N/A' : 'N/A'}`
+      sortable: true,
+      render: (value, installment) => {
+        const sale = sales.find(s => s.id === installment.sale_id);
+        const totalInstallments = sale?.installments_count || 0;
+        return (
+          <div className="text-center">
+            <div className="font-medium">{value}º</div>
+            <div className="text-xs text-muted-foreground">
+              de {totalInstallments}
+            </div>
+          </div>
+        );
+      }
     },
     {
       key: 'amount',
       label: 'Valor',
       sortable: true,
-      render: (value) => formatCurrency(Number(value))
+      render: (value, installment) => {
+        const sale = sales.find(s => s.id === installment.sale_id);
+        return (
+          <div>
+            <div className="font-medium">
+              {formatCurrency(Number(value))}
+            </div>
+            {sale && (
+              <div className="text-xs text-muted-foreground">
+                Total: {formatCurrency(sale.total_amount)}
+              </div>
+            )}
+          </div>
+        );
+      }
     },
     {
       key: 'due_date',
       label: 'Vencimento',
       sortable: true,
-      render: (value) => formatDate(value as string)
+      render: (value, installment) => {
+        const dueDate = new Date(value as string);
+        const today = new Date();
+        const isOverdue = dueDate < today && installment.status === 'pending';
+        const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        return (
+          <div>
+            <div className={`font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+              {formatDate(value as string)}
+            </div>
+            {installment.status === 'pending' && (
+              <div className={`text-xs ${isOverdue ? 'text-red-500' : 'text-muted-foreground'}`}>
+                {isOverdue 
+                  ? `Venceu há ${Math.abs(daysUntilDue)} dias`
+                  : daysUntilDue === 0 
+                    ? 'Vence hoje'
+                    : `${daysUntilDue} dias restantes`
+                }
+              </div>
+            )}
+          </div>
+        );
+      }
     },
     {
       key: 'status',
       label: 'Status',
-      render: (value) => getStatusBadge(value as string)
+      sortable: true,
+      render: (value, installment) => {
+        const dueDate = new Date(installment.due_date);
+        const today = new Date();
+        const isOverdue = dueDate < today && value === 'pending';
+        
+        // Se está vencida mas ainda marcada como pending, mostrar como overdue
+        const actualStatus = isOverdue ? 'overdue' : value;
+        
+        return getStatusBadge(actualStatus as string);
+      }
+    },
+    {
+      key: 'payment_method',
+      label: 'Forma de Pagamento',
+      render: (value, installment) => {
+        if (installment.status === 'paid' && value) {
+          const methods: Record<string, string> = {
+            cash: 'Dinheiro',
+            credit_card: 'Cartão de Crédito',
+            debit_card: 'Cartão de Débito',
+            pix: 'PIX',
+            bank_transfer: 'Transferência'
+          };
+          return methods[value] || value;
+        }
+        return '-';
+      }
     },
     {
       key: 'paid_date',
       label: 'Data Pagamento',
-      render: (value) => value ? formatDate(value as string) : '-'
+      sortable: true,
+      render: (value, installment) => {
+        if (value) {
+          const paidDate = new Date(value as string);
+          const dueDate = new Date(installment.due_date);
+          const isPaidLate = paidDate > dueDate;
+          
+          return (
+            <div>
+              <div className={`font-medium ${isPaidLate ? 'text-orange-600' : 'text-green-600'}`}>
+                {formatDate(value as string)}
+              </div>
+              {isPaidLate && (
+                <div className="text-xs text-orange-500">
+                  Pago com atraso
+                </div>
+              )}
+            </div>
+          );
+        }
+        return '-';
+      }
+    },
+    {
+      key: 'notes',
+      label: 'Observações',
+      render: (value) => {
+        if (!value) return '-';
+        return (
+          <div className="max-w-[150px] truncate" title={value as string}>
+            {value as string}
+          </div>
+        );
+      }
     },
     {
       key: 'id',
@@ -672,8 +878,10 @@ export default function Sales() {
               variant="outline"
               onClick={() => handleUpdateInstallmentStatus(item.id, 'paid')}
               disabled={formLoading}
+              className="text-green-600 hover:text-green-700"
             >
-              Marcar como Pago
+              <DollarSign className="h-4 w-4 mr-1" />
+              Pagar
             </Button>
           )}
           {item.status === 'paid' && (
@@ -682,8 +890,9 @@ export default function Sales() {
               variant="outline"
               onClick={() => handleUpdateInstallmentStatus(item.id, 'pending')}
               disabled={formLoading}
+              className="text-orange-600 hover:text-orange-700"
             >
-              Marcar como Pendente
+              Desfazer
             </Button>
           )}
           <Button
@@ -852,7 +1061,7 @@ export default function Sales() {
                       key: 'search',
                       label: 'Buscar',
                       type: 'search',
-                      placeholder: 'Buscar por descrição...'
+                      placeholder: 'Buscar por descrição ou fornecedor...'
                     },
                     {
                       key: 'category',
@@ -876,7 +1085,9 @@ export default function Sales() {
               <CardHeader>
                 <CardTitle>Lista de Gastos</CardTitle>
                 <CardDescription>
-                  {filteredExpenses.length} gasto(s) encontrado(s)
+                  {filteredExpenses.length} gasto(s) encontrado(s) - Total: {formatCurrency(
+                    filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -901,6 +1112,12 @@ export default function Sales() {
                 <Filters
                   configs={[
                     {
+                      key: 'search',
+                      label: 'Buscar Cliente',
+                      type: 'search',
+                      placeholder: 'Buscar por nome do cliente...'
+                    },
+                    {
                       key: 'status',
                       label: 'Status',
                       type: 'select',
@@ -909,11 +1126,23 @@ export default function Sales() {
                         { value: 'paid', label: 'Pago' },
                         { value: 'overdue', label: 'Vencido' }
                       ]
+                    },
+                    {
+                      key: 'paymentMethod',
+                      label: 'Forma de Pagamento',
+                      type: 'select',
+                      options: [
+                        { value: 'cash', label: 'Dinheiro' },
+                        { value: 'credit_card', label: 'Cartão de Crédito' },
+                        { value: 'debit_card', label: 'Cartão de Débito' },
+                        { value: 'pix', label: 'PIX' },
+                        { value: 'bank_transfer', label: 'Transferência' }
+                      ]
                     }
                   ]}
                   values={filters}
                   onChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value === 'all' ? '' : value }))}
-                  onClear={() => setFilters(prev => ({ ...prev, status: '' }))}
+                  onClear={() => setFilters(prev => ({ ...prev, search: '', status: '', paymentMethod: '' }))}
                 />
               </CardContent>
             </Card>
@@ -922,7 +1151,15 @@ export default function Sales() {
               <CardHeader>
                 <CardTitle>Lista de Parcelas</CardTitle>
                 <CardDescription>
-                  {filteredInstallments.length} parcela(s) encontrada(s)
+                  {filteredInstallments.length} parcela(s) encontrada(s) - Total a Receber: {formatCurrency(
+                    filteredInstallments
+                      .filter(installment => installment.status === 'pending')
+                      .reduce((sum, installment) => sum + installment.amount, 0)
+                  )} - Total Recebido: {formatCurrency(
+                    filteredInstallments
+                      .filter(installment => installment.status === 'paid')
+                      .reduce((sum, installment) => sum + installment.amount, 0)
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
