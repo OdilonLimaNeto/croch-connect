@@ -510,30 +510,98 @@ export default function Sales() {
     {
       key: 'customer_name',
       label: 'Cliente',
-      sortable: true
+      sortable: true,
+    },
+    {
+      key: 'customer_email',
+      label: 'Email',
+      render: (value) => value || '-',
+    },
+    {
+      key: 'customer_phone',
+      label: 'Telefone',
+      render: (value) => value || '-',
+    },
+    {
+      key: 'sale_items',
+      label: 'Produtos',
+      render: (_, sale) => {
+        const itemsText = sale.sale_items?.map(item => 
+          `${item.product_name} (${item.quantity}x)`
+        ).join(', ') || '-';
+        return (
+          <div className="max-w-[200px] truncate" title={itemsText}>
+            {itemsText}
+          </div>
+        );
+      },
     },
     {
       key: 'total_amount',
-      label: 'Valor Total',
+      label: 'Total',
       sortable: true,
-      render: (value) => formatCurrency(Number(value))
+      render: (value) => formatCurrency(value),
     },
     {
       key: 'payment_method',
-      label: 'Método',
-      render: (value) => getPaymentMethodLabel(value as string)
+      label: 'Forma de Pagamento',
+      sortable: true,
+      render: (value) => {
+        const methods: Record<string, string> = {
+          cash: 'Dinheiro',
+          credit_card: 'Cartão de Crédito',
+          debit_card: 'Cartão de Débito',
+          pix: 'PIX',
+          bank_transfer: 'Transferência',
+          installments: 'Parcelado'
+        };
+        return methods[value] || value;
+      },
     },
     {
       key: 'payment_status',
-      label: 'Status',
-      render: (value) => getStatusBadge(value as string)
+      label: 'Status Pagamento',
+      sortable: true,
+      render: (value) => {
+        const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+          pending: { label: 'Pendente', variant: 'secondary' },
+          paid: { label: 'Pago', variant: 'default' },
+          partial: { label: 'Parcial', variant: 'outline' },
+          cancelled: { label: 'Cancelado', variant: 'destructive' }
+        };
+        const status = statusMap[value] || { label: value, variant: 'outline' as const };
+        return <Badge variant={status.variant}>{status.label}</Badge>;
+      },
+    },
+    {
+      key: 'installments_count',
+      label: 'Parcelas',
+      render: (value, sale) => {
+        if (sale.payment_method === 'installments' && value > 1) {
+          const paidCount = sale.installments?.filter(i => i.status === 'paid').length || 0;
+          return `${paidCount}/${value}`;
+        }
+        return value > 1 ? `${value}x` : 'À vista';
+      },
     },
     {
       key: 'sale_date',
-      label: 'Data',
+      label: 'Data da Venda',
       sortable: true,
-      render: (value) => formatDate(value as string)
-    }
+      render: (value) => formatDate(value),
+    },
+    {
+      key: 'notes',
+      label: 'Observações',
+      render: (value) => {
+        if (!value) return '-';
+        return (
+          <div className="max-w-[150px] truncate" title={value}>
+            {value}
+          </div>
+        );
+      },
+    },
   ];
 
   const expensesColumns: TableColumn<Expense>[] = [

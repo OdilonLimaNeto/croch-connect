@@ -24,7 +24,7 @@ export class DataSanitizer {
     
     return input
       .replace(/[<>\"'&]/g, '') // Remove potentially harmful characters
-      .trim()
+      .replace(/^\s+|\s+$/g, '') // Remove leading/trailing spaces but keep internal spaces
       .slice(0, 1000); // Limit length to prevent buffer overflow
   }
 
