@@ -11,6 +11,7 @@ import Footer from '@/components/layout/footer';
 import HeroCarousel from '@/components/hero-carousel';
 import AboutFounders from '@/components/about-founders';
 import ProductGrid from '@/components/products/product-grid';
+import ProductCard from '@/components/products/product-card';
 import heroImage from '@/assets/hero-image.jpg';
 import productBabySet from '@/assets/product-baby-set.jpg';
 import productBlanket from '@/assets/product-blanket.jpg';
@@ -163,7 +164,7 @@ const Index = () => {
 
       {/* Other Featured Products */}
       <section className="py-16 bg-card">
-        <div className="container mx-auto px-4 flex flex-col items-center">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-primary mb-4">Outros produtos em destaque</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -173,12 +174,17 @@ const Index = () => {
           
           {featuredProducts.length > 0 ? (
             <div className="max-w-6xl mx-auto">
-              <ProductGrid
-                products={featuredProducts}
-                loading={loading}
-                onProductClick={handleProductClick}
-                className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-              />
+              {/* Grid customizado para melhor alinhamento desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+                {featuredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetails={handleProductClick}
+                    className="w-full max-w-sm animate-fade-in hover-scale transition-all duration-300"
+                  />
+                ))}
+              </div>
             </div>
           ) : (
             /* Fallback when no products in database */
