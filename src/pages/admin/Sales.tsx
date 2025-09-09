@@ -685,30 +685,6 @@ export default function Sales() {
       label: 'Cadastrado em',
       sortable: true,
       render: (value) => formatDate(value as string)
-    },
-    {
-      key: 'id',
-      label: 'Ações',
-      render: (value, expense) => (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleEditExpense(expense)}
-            disabled={formLoading}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleDeleteExpense(expense)}
-            disabled={formLoading}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      )
     }
   ];
 
