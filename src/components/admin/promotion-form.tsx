@@ -41,6 +41,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Package, GripVertical, Trash2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIOSScrollFix } from '@/hooks/use-ios-scroll-fix';
 import {
   DndContext,
   closestCenter,
@@ -162,6 +163,9 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
   const [images, setImages] = useState<File[]>([]);
   const [imageItems, setImageItems] = useState<ImageItem[]>([]);
   const isEdit = !!promotion;
+
+  // Hook para correções específicas do iOS
+  const { getScrollClasses } = useIOSScrollFix();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -430,7 +434,7 @@ export const PromotionForm: React.FC<PromotionFormProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className={cn("sm:max-w-[500px] max-h-[90vh]", getScrollClasses())}>
         <DialogHeader>
           <DialogTitle>
             {isEdit ? 'Editar Promoção' : 'Nova Promoção'}

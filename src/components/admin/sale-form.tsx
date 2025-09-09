@@ -18,25 +18,27 @@ interface SaleFormProps {
   onSubmit: (data: SaleFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  sale?: SaleFormData;
 }
 
 export const SaleForm: React.FC<SaleFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
+  sale,
 }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [formData, setFormData] = useState<SaleFormData>({
-    customer_name: '',
-    customer_email: '',
-    customer_phone: '',
-    total_amount: 0,
-    payment_method: 'cash',
-    payment_status: 'pending',
-    installments_count: 1,
-    sale_date: new Date(),
-    notes: '',
-    items: []
+    customer_name: sale?.customer_name || '',
+    customer_email: sale?.customer_email || '',
+    customer_phone: sale?.customer_phone || '',
+    total_amount: sale?.total_amount || 0,
+    payment_method: sale?.payment_method || 'cash',
+    payment_status: sale?.payment_status || 'pending',
+    installments_count: sale?.installments_count || 1,
+    sale_date: sale?.sale_date || new Date(),
+    notes: sale?.notes || '',
+    items: sale?.items || []
   });
 
   // Enhanced validation schema with sanitization
@@ -440,7 +442,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading || formData.items.length === 0}>
-          {isLoading ? 'Salvando...' : 'Criar Venda'}
+          {isLoading ? 'Salvando...' : (sale ? 'Atualizar Venda' : 'Criar Venda')}
         </Button>
       </div>
     </form>

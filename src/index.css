@@ -123,4 +123,30 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Mobile scroll improvements - especially for iOS */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overflow-scrolling: touch;
+  }
+
+  /* iOS Safari specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    .ios-scroll-fix {
+      -webkit-overflow-scrolling: touch;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+  }
+
+  /* Dialog content mobile optimization */
+  @media (max-width: 768px) {
+    [data-radix-dialog-content] {
+      max-height: 90vh !important;
+      max-width: 95vw !important;
+      margin: 0 auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 }

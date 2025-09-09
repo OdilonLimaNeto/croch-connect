@@ -16,6 +16,8 @@ import { Sale, Expense, Installment, SaleFormData, ExpenseFormData } from '@/typ
 import { TableColumn } from '@/types';
 import { Plus, Search, Edit, Trash2, Eye, DollarSign, ShoppingCart, Receipt } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { saleToFormData, expenseToFormData } from '@/lib/formConverters';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function Sales() {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -26,6 +28,10 @@ export default function Sales() {
   const [showSaleForm, setShowSaleForm] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+  const [editingSale, setEditingSale] = useState<Sale | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [saleToDelete, setSaleToDelete] = useState<Sale | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [filters, setFilters] = useState({
     search: '',
     status: '',
@@ -163,28 +169,34 @@ export default function Sales() {
   const handleCreateSale = async (saleData: SaleFormData) => {
     setFormLoading(true);
     try {
-      const result = await SalesService.createSale(saleData);
+      let result;
+      if (editingSale) {
+        result = await SalesService.updateSale(editingSale.id, saleData);
+      } else {
+        result = await SalesService.createSale(saleData);
+      }
       
       if (result.success) {
         toast({
           title: 'Sucesso!',
-          description: 'Venda criada com sucesso.',
+          description: editingSale ? 'Venda atualizada com sucesso.' : 'Venda criada com sucesso.',
         });
         
         setShowSaleForm(false);
+        setEditingSale(null);
         await loadData(); // Reload data
       } else {
         toast({
           title: 'Erro',
-          description: result.error || 'Erro ao criar venda.',
+          description: result.error || (editingSale ? 'Erro ao atualizar venda.' : 'Erro ao criar venda.'),
           variant: 'destructive'
         });
       }
     } catch (error) {
-      console.error('Error creating sale:', error);
+      console.error('Error with sale:', error);
       toast({
         title: 'Erro',
-        description: 'Erro inesperado ao criar venda.',
+        description: editingSale ? 'Erro inesperado ao atualizar venda.' : 'Erro inesperado ao criar venda.',
         variant: 'destructive'
       });
     } finally {
@@ -195,28 +207,34 @@ export default function Sales() {
   const handleCreateExpense = async (expenseData: ExpenseFormData) => {
     setFormLoading(true);
     try {
-      const result = await ExpensesService.createExpense(expenseData);
+      let result;
+      if (editingExpense) {
+        result = await ExpensesService.updateExpense(editingExpense.id, expenseData);
+      } else {
+        result = await ExpensesService.createExpense(expenseData);
+      }
       
       if (result.success) {
         toast({
           title: 'Sucesso!',
-          description: 'Gasto registrado com sucesso.',
+          description: editingExpense ? 'Gasto atualizado com sucesso.' : 'Gasto registrado com sucesso.',
         });
         
         setShowExpenseForm(false);
+        setEditingExpense(null);
         await loadData(); // Reload data
       } else {
         toast({
           title: 'Erro',
-          description: result.error || 'Erro ao registrar gasto.',
+          description: result.error || (editingExpense ? 'Erro ao atualizar gasto.' : 'Erro ao registrar gasto.'),
           variant: 'destructive'
         });
       }
     } catch (error) {
-      console.error('Error creating expense:', error);
+      console.error('Error with expense:', error);
       toast({
         title: 'Erro',
-        description: 'Erro inesperado ao registrar gasto.',
+        description: editingExpense ? 'Erro inesperado ao atualizar gasto.' : 'Erro inesperado ao registrar gasto.',
         variant: 'destructive'
       });
     } finally {
@@ -248,6 +266,130 @@ export default function Sales() {
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao atualizar parcela.',
+        variant: 'destructive'
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Handlers simples para edição e exclusão
+  const handleEditSale = (sale: Sale) => {
+    setEditingSale(sale);
+    setShowSaleForm(true);
+  };
+
+  const handleDeleteSale = (sale: Sale) => {
+    setSaleToDelete(sale);
+  };
+
+  const confirmDeleteSale = async () => {
+    if (!saleToDelete) return;
+    
+    setFormLoading(true);
+    try {
+      const result = await SalesService.deleteSale(saleToDelete.id);
+      
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Venda excluída com sucesso.',
+        });
+        
+        setSaleToDelete(null);
+        await loadData(); // Reload data
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error || 'Erro ao excluir venda.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting sale:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao excluir venda.',
+        variant: 'destructive'
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Funções para edição de gastos
+  const handleEditExpense = (expense: Expense) => {
+    setEditingExpense(expense);
+    setShowExpenseForm(true);
+  };
+
+  const handleUpdateExpense = async (expenseData: ExpenseFormData) => {
+    if (!editingExpense) return;
+    
+    setFormLoading(true);
+    try {
+      const result = await ExpensesService.updateExpense(editingExpense.id, expenseData);
+      
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Gasto atualizado com sucesso.',
+        });
+        
+        setShowExpenseForm(false);
+        setEditingExpense(null);
+        await loadData(); // Reload data
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error || 'Erro ao atualizar gasto.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao atualizar gasto.',
+        variant: 'destructive'
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Funções para exclusão de gastos
+  const handleDeleteExpense = (expense: Expense) => {
+    setExpenseToDelete(expense);
+  };
+
+  const confirmDeleteExpense = async () => {
+    if (!expenseToDelete) return;
+    
+    setFormLoading(true);
+    try {
+      const result = await ExpensesService.deleteExpense(expenseToDelete.id);
+      
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Gasto excluído com sucesso.',
+        });
+        
+        setExpenseToDelete(null);
+        await loadData(); // Reload data
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error || 'Erro ao excluir gasto.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao excluir gasto.',
         variant: 'destructive'
       });
     } finally {
@@ -581,6 +723,8 @@ export default function Sales() {
                   data={filteredSales}
                   columns={salesColumns}
                   loading={loading}
+                  onEdit={handleEditSale}
+                  onDelete={handleDeleteSale}
                   getItemId={(item) => item.id}
                 />
               </CardContent>
@@ -631,6 +775,8 @@ export default function Sales() {
                   data={filteredExpenses}
                   columns={expensesColumns}
                   loading={loading}
+                  onEdit={handleEditExpense}
+                  onDelete={handleDeleteExpense}
                   getItemId={(item) => item.id}
                 />
               </CardContent>

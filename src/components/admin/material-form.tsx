@@ -25,6 +25,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Material } from '@/types';
 import { MaterialService } from '@/services/api';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { useIOSScrollFix } from '@/hooks/use-ios-scroll-fix';
 
 const materialSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome muito longo'),
@@ -49,6 +51,9 @@ export const MaterialForm: React.FC<MaterialFormProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const isEdit = !!material;
+
+  // Hook para correções específicas do iOS
+  const { getScrollClasses } = useIOSScrollFix();
 
   const form = useForm<MaterialFormData>({
     resolver: zodResolver(materialSchema),
@@ -113,7 +118,7 @@ export const MaterialForm: React.FC<MaterialFormProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className={cn("sm:max-w-[500px] max-h-[85vh]", getScrollClasses())}>
         <DialogHeader>
           <DialogTitle>
             {isEdit ? 'Editar Material' : 'Novo Material'}

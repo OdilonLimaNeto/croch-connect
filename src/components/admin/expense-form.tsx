@@ -14,20 +14,22 @@ interface ExpenseFormProps {
   onSubmit: (data: ExpenseFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  expense?: ExpenseFormData;
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
+  expense,
 }) => {
   const [formData, setFormData] = useState<ExpenseFormData>({
-    description: '',
-    amount: 0,
-    category: 'materials',
-    date: new Date(),
-    supplier: '',
-    notes: '',
+    description: expense?.description || '',
+    amount: expense?.amount || 0,
+    category: expense?.category || 'materials',
+    date: expense?.date || new Date(),
+    supplier: expense?.supplier || '',
+    notes: expense?.notes || '',
   });
 
   // Enhanced validation schema with sanitization
@@ -204,7 +206,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading || formData.amount <= 0}>
-          {isLoading ? 'Salvando...' : 'Registrar Gasto'}
+          {isLoading ? 'Salvando...' : (expense ? 'Atualizar Gasto' : 'Registrar Gasto')}
         </Button>
       </div>
     </form>
