@@ -177,7 +177,7 @@ export default function Sales() {
         result = await SalesService.createSale(saleData);
       }
       
-      if (result.success) {
+      if (editingSale ? result.success : (result.data && !result.error)) {
         toast({
           title: 'Sucesso!',
           description: editingSale ? 'Venda atualizada com sucesso.' : 'Venda criada com sucesso.',

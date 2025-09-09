@@ -42,7 +42,7 @@ export class SalesService {
     }
   }
 
-  async createSale(saleData: SaleFormData): Promise<{ data: Sale | null; error: string | null }> {
+  static async createSale(saleData: SaleFormData): Promise<{ data: Sale | null; error: string | null }> {
     try {
       // Validar estoque antes de criar a venda
       const stockValidation = await StockService.validateStockAvailability(saleData.items);

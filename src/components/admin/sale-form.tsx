@@ -94,7 +94,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         product_id: '',
         product_name: '',
         quantity: 1,
-        unit_price: 0
+        unit_price: 0,
+        total_price: 0
       }]
     }));
   };
@@ -122,6 +123,13 @@ export const SaleForm: React.FC<SaleFormProps> = ({
             }
           }
           
+          // Recalculate total_price whenever quantity or unit_price changes
+          if (field === 'quantity' || field === 'unit_price') {
+            const quantity = field === 'quantity' ? Number(value) : updatedItem.quantity;
+            const unitPrice = field === 'unit_price' ? Number(value) : updatedItem.unit_price;
+            updatedItem.total_price = quantity * unitPrice;
+          }
+          
           return updatedItem;
         }
         return item;
@@ -139,7 +147,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         items: formData.items.map(item => ({
           ...item,
           quantity: Number(item.quantity),
-          unit_price: Number(item.unit_price)
+          unit_price: Number(item.unit_price),
+          total_price: Number(item.quantity) * Number(item.unit_price)
         }))
       });
       

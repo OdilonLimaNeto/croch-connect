@@ -18,7 +18,8 @@ export function saleToFormData(sale: Sale): SaleFormData {
       product_id: item.product_id,
       product_name: item.product_name,
       quantity: item.quantity,
-      unit_price: item.unit_price
+      unit_price: item.unit_price,
+      total_price: item.total_price
     })) || []
   };
 }
