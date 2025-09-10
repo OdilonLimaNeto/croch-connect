@@ -12,6 +12,7 @@ import HeroCarousel from '@/components/hero-carousel';
 import AboutFounders from '@/components/about-founders';
 import ProductGrid from '@/components/products/product-grid';
 import ProductCard from '@/components/products/product-card';
+import SocialMediaSection from '@/components/social-media-section';
 import heroImage from '@/assets/hero-image.jpg';
 import productBabySet from '@/assets/product-baby-set.jpg';
 import productBlanket from '@/assets/product-blanket.jpg';
@@ -111,6 +112,9 @@ const Index = () => {
 
       {/* About Founders Section */}
       <AboutFounders />
+
+      {/* Social Media Section */}
+      <SocialMediaSection />
 
       {/* Features Section */}
       <section className="py-16 bg-background">

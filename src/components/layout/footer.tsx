@@ -1,6 +1,5 @@
 import React from 'react';
 import { Heart, MessageCircle, Mail, Phone } from 'lucide-react';
-import { SocialMediaLinks } from '@/components/ui/social-media-links';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -47,10 +46,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Social Media Links */}
-        <div className="flex justify-center pt-6 border-t">
-          <SocialMediaLinks className="justify-center" />
-        </div>
 
         <div className="border-t mt-8 pt-6 text-center text-sm text-muted-foreground">
           <p>© {currentYear} Nó de Duas. Todos os direitos reservados.</p>
