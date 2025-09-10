@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { SiteSettings, SiteSettingsFormData } from '@/types';
+import { SiteSettings, SiteSettingsFormData, SocialMedia } from '@/types';
 
 export class SiteSettingsService {
   static async getSiteSettings(): Promise<SiteSettings | null> {
@@ -13,7 +13,33 @@ export class SiteSettingsService {
         .maybeSingle();
 
       if (error) throw error;
-      return data;
+      
+      if (data) {
+        // Parse social_media JSON field safely
+        let socialMedia: SocialMedia[] = [];
+        try {
+          if (data.social_media && Array.isArray(data.social_media)) {
+            socialMedia = (data.social_media as unknown) as SocialMedia[];
+          }
+        } catch (e) {
+          console.warn('Error parsing social_media field:', e);
+          socialMedia = [];
+        }
+
+        return {
+          id: data.id,
+          site_name: data.site_name,
+          logo_url: data.logo_url,
+          favicon_url: data.favicon_url,
+          primary_color: data.primary_color,
+          social_media: socialMedia,
+          is_active: data.is_active,
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        };
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error fetching site settings:', error);
       return null;
@@ -36,6 +62,11 @@ export class SiteSettingsService {
       
       if (logoUrl !== undefined) {
         updateData.logo_url = logoUrl;
+      }
+
+      // Add social_media field if provided
+      if (updates.social_media !== undefined) {
+        updateData.social_media = updates.social_media;
       }
 
       const { error } = await supabase

@@ -149,12 +149,19 @@ export interface BulkAction<T> {
 }
 
 // Site Settings types
+export interface SocialMedia {
+  platform: string;
+  url: string;
+  icon: string;
+}
+
 export interface SiteSettings {
   id: string;
   site_name: string;
   logo_url: string | null;
   favicon_url: string | null;
   primary_color: string;
+  social_media: SocialMedia[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -163,6 +170,7 @@ export interface SiteSettings {
 export interface SiteSettingsFormData {
   site_name: string;
   logo?: File;
+  social_media?: SocialMedia[];
 }
 
 // Sales and Analytics types

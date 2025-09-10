@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageUpload } from '@/components/ui/image-upload';
-import { SiteSettingsFormData, SiteSettings } from '@/types';
+import { SocialMediaForm } from '@/components/admin/social-media-form';
+import { SiteSettingsFormData, SiteSettings, SocialMedia } from '@/types';
 
 interface SiteSettingsFormProps {
   settings?: SiteSettings;
@@ -21,6 +22,7 @@ export const SiteSettingsForm: React.FC<SiteSettingsFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<SiteSettingsFormData>({
     site_name: 'Nó de Duas',
+    social_media: [],
   });
   
   const [logoImages, setLogoImages] = useState<File[]>([]);
@@ -29,6 +31,7 @@ export const SiteSettingsForm: React.FC<SiteSettingsFormProps> = ({
     if (settings) {
       setFormData({
         site_name: settings.site_name,
+        social_media: settings.social_media || [],
       });
     }
   }, [settings]);
@@ -37,8 +40,13 @@ export const SiteSettingsForm: React.FC<SiteSettingsFormProps> = ({
     e.preventDefault();
     await onSubmit({ 
       ...formData, 
-      logo: logoImages[0] 
+      logo: logoImages[0],
+      social_media: formData.social_media 
     });
+  };
+
+  const handleSocialMediaChange = (socialMedia: SocialMedia[]) => {
+    setFormData(prev => ({ ...prev, social_media: socialMedia }));
   };
 
   return (
@@ -73,6 +81,12 @@ export const SiteSettingsForm: React.FC<SiteSettingsFormProps> = ({
               </div>
             )}
           </div>
+
+          {/* Formulário de Redes Sociais */}
+          <SocialMediaForm
+            socialMedia={formData.social_media || []}
+            onChange={handleSocialMediaChange}
+          />
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isLoading}>

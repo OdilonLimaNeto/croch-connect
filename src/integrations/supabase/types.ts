@@ -378,6 +378,7 @@ export type Database = {
           logo_url: string | null
           primary_color: string | null
           site_name: string
+          social_media: Json | null
           updated_at: string
         }
         Insert: {
@@ -388,6 +389,7 @@ export type Database = {
           logo_url?: string | null
           primary_color?: string | null
           site_name?: string
+          social_media?: Json | null
           updated_at?: string
         }
         Update: {
@@ -398,6 +400,7 @@ export type Database = {
           logo_url?: string | null
           primary_color?: string | null
           site_name?: string
+          social_media?: Json | null
           updated_at?: string
         }
         Relationships: []
