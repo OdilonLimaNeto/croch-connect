@@ -3,8 +3,9 @@ import { FaFacebook, FaInstagram, FaTwitter, FaLinkedin, FaYoutube, FaWhatsapp, 
 import { SiteSettings, SocialMedia } from '@/types';
 import { SiteSettingsService } from '@/services/siteSettingsService';
 
-interface SocialMediaShowcaseProps {
+interface SocialMediaLinksProps {
   className?: string;
+  variant?: 'compact' | 'showcase';
 }
 
 const SOCIAL_ICONS = {
@@ -50,7 +51,7 @@ const SOCIAL_ICONS = {
   },
 };
 
-export const SocialMediaShowcase: React.FC<SocialMediaShowcaseProps> = ({ className = "" }) => {
+export const SocialMediaLinks: React.FC<SocialMediaLinksProps> = ({ className = "", variant = 'compact' }) => {
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
@@ -98,6 +99,47 @@ export const SocialMediaShowcase: React.FC<SocialMediaShowcaseProps> = ({ classN
     return null;
   }
 
+  if (variant === 'compact') {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <div className="flex items-center gap-1">
+          <span className="text-sm font-medium text-muted-foreground mr-3">
+            Siga-nos:
+          </span>
+          <div className="flex gap-2">
+            {siteSettings.social_media.map((social, index) => {
+              const config = getSocialConfig(social.icon);
+              const IconComponent = config.icon;
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleSocialClick(social)}
+                  className="
+                    group relative p-2 rounded-lg
+                    bg-card/50 dark:bg-card/30 
+                    border border-border/50 dark:border-border/30
+                    hover:border-primary/30 dark:hover:border-primary/40
+                    hover:bg-card dark:hover:bg-card/50
+                    transition-all duration-200 ease-out
+                    hover:scale-105
+                  "
+                  title={`Seguir no ${social.platform}`}
+                >
+                  <IconComponent 
+                    className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" 
+                    style={{ color: config.color }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Showcase variant - more detailed view
   return (
     <div className={`w-full ${className}`}>
       <div className="text-center mb-8">

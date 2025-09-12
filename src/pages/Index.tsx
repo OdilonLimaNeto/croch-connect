@@ -13,6 +13,7 @@ import AboutFounders from '@/components/about-founders';
 import ProductGrid from '@/components/products/product-grid';
 import ProductCard from '@/components/products/product-card';
 import { SocialMediaShowcase } from '@/components/social-media-showcase';
+import { SocialMediaLinks } from '@/components/ui/social-media-links';
 import heroImage from '@/assets/hero-image.jpg';
 import productBabySet from '@/assets/product-baby-set.jpg';
 import productBlanket from '@/assets/product-blanket.jpg';
@@ -104,9 +105,9 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Enhanced Social Media Showcase */}
-            <div className="mt-12 pt-8 border-t border-primary/10">
-              <SocialMediaShowcase />
+            {/* Social Media Links - Compact Version for Hero */}
+            <div className="mt-6">
+              <SocialMediaLinks variant="compact" />
             </div>
           </div>
         </div>
@@ -117,6 +118,13 @@ const Index = () => {
 
       {/* About Founders Section */}
       <AboutFounders />
+
+      {/* Social Media Showcase Section */}
+      <section className="py-16 bg-gradient-subtle">
+        <div className="container mx-auto px-4">
+          <SocialMediaShowcase />
+        </div>
+      </section>
 
       {/* Features Section */}
       <section className="py-16 bg-background">
