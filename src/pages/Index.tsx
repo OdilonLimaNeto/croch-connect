@@ -109,6 +109,14 @@ const Index = () => {
                 Falar no WhatsApp
               </Button>
             </div>
+            
+            {/* Social Media Section */}
+            <div className="mt-8 pt-6 border-t border-primary/10">
+              <h3 className="text-lg font-semibold text-primary mb-4">Siga-nos nas redes sociais</h3>
+              <div className="flex justify-center">
+                <SocialMediaLinks className="justify-center gap-4" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
