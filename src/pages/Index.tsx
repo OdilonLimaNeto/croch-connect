@@ -12,8 +12,6 @@ import HeroCarousel from '@/components/hero-carousel';
 import AboutFounders from '@/components/about-founders';
 import ProductGrid from '@/components/products/product-grid';
 import ProductCard from '@/components/products/product-card';
-import SocialMediaSection from '@/components/social-media-section';
-import { SocialMediaLinks } from '@/components/ui/social-media-links';
 import { SocialMediaShowcase } from '@/components/social-media-showcase';
 import heroImage from '@/assets/hero-image.jpg';
 import productBabySet from '@/assets/product-baby-set.jpg';
