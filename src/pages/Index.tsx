@@ -13,6 +13,7 @@ import AboutFounders from '@/components/about-founders';
 import ProductGrid from '@/components/products/product-grid';
 import ProductCard from '@/components/products/product-card';
 import SocialMediaSection from '@/components/social-media-section';
+import { SocialMediaLinks } from '@/components/ui/social-media-links';
 import heroImage from '@/assets/hero-image.jpg';
 import productBabySet from '@/assets/product-baby-set.jpg';
 import productBlanket from '@/assets/product-blanket.jpg';
@@ -84,6 +85,11 @@ const Index = () => {
               Criamos peças únicas e especiais para sua família. Cada produto é feito 
               com carinho e dedicação, usando os melhores materiais.
             </p>
+            
+            {/* Social Media Links */}
+            <div className="flex justify-center pt-4">
+              <SocialMediaLinks className="justify-center gap-3" />
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link to="/produtos">
